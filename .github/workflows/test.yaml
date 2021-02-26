@@ -24,4 +24,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.dev.txt
       - run: pre-commit run -a
-      - run: pytest
+      - run: pytest --cov-report xml --cov okra_server
+      - uses: codecov/codecov-action@v1
+        with:
+          files: coverage.xml
+          fail_ci_if_error: true
