@@ -1,5 +1,6 @@
 -r requirements.txt
 
 pytest==6.2.2
+pytest-cov==2.11.1
 pytest-django==4.1.0
 pre-commit==2.10.1
