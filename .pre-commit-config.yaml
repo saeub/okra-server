@@ -18,4 +18,10 @@ repos:
     rev: v2.2.1
     hooks:
       - id: prettier
-        exclude: .html$
+        exclude: \.html$
+  - repo: https://github.com/motet-a/jinjalint
+    rev: 01e0a4d
+    hooks:
+      - id: jinjalint
+        types: [file]
+        files: \.html$

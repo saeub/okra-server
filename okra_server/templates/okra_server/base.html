@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>{% block title %}{% endblock title %}</title>
-    {% block head %}{% endblock head %}
-  </head>
-  <body>
-    {% if user.is_authenticated %}
-      <a href="{% url 'participant-list' %}">Participants</a>
-      | <a href="{% url 'experiment-list' %}">Experiments</a>
-    {% endif %}
-    {% block content %}{% endblock content %}
-  </body>
+<head>
+<title>{% block title %}{% endblock title %}</title>
+{% block head %}{% endblock head %}
+</head>
+<body>
+{% if user.is_authenticated %}
+    <a href="{% url 'participant-list' %}">Participants</a>
+    | <a href="{% url 'experiment-list' %}">Experiments</a>
+{% endif %}
+{% block content %}{% endblock content %}
+</body>
 </html>
