@@ -1,0 +1,36 @@
+{% extends 'okra_server/base.html' %}
+
+{% block title %}Registration details{% endblock title %}
+
+{% block content %}
+  <ul>
+    <li>
+      API URL:
+      <input
+        type="text"
+        value="{{ base_url }}"
+        onClick="this.select();"
+        readonly
+      />
+    </li>
+    <li>
+      Participant ID:
+      <input
+        type="text"
+        value="{{ participant_id }}"
+        onClick="this.select();"
+        readonly
+      />
+    </li>
+    <li>
+      Registration key:
+      <input
+        type="text"
+        value="{{ registration_key }}"
+        onClick="this.select();"
+        readonly
+      />
+    </li>
+  </ul>
+  <img src="data:image/png;base64,{{ qr_data }}" />
+{% endblock content %}

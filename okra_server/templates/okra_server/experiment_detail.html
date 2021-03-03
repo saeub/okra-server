@@ -1,0 +1,46 @@
+{% extends 'okra_server/base.html' %}
+{% load static %}
+{% load js %}
+
+{% block title %}Experiment: {{ experiment.title }}{% endblock title %}
+
+{% block head %}
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/uuid@8.3.2/dist/umd/uuidv4.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@0.21.1/dist/axios.min.js"></script>
+{% endblock head %}
+
+{% block content %}
+  <div id="app">
+    <experiment-form v-model="data"></experiment-form>
+    <input type="button" value="Save" @click="submit()">
+    [[ message ]]
+  </div>
+  <script src="{% static '/okra_server/js/experiment_form.js' %}"></script>
+  <script>
+    axios.defaults.xsrfCookieName = "csrftoken"
+    axios.defaults.xsrfHeaderName = "X-CSRFTOKEN"
+    const initialData = {{ data|to_js }};
+
+    var app = new Vue({
+      el: "#app",
+      delimiters: ["[[", "]]"],
+      data: {
+        data: initialData,
+        message: null,
+      },
+      methods: {
+        submit() {
+          axios
+            .post("", this.data)
+            .then((response) => {
+              this.message = response.data.message;
+              if (response.data.redirect !== undefined) {
+                window.location.href = response.data.redirect;
+              }
+            });
+        },
+      },
+    });
+  </script>
+{% endblock content %}
