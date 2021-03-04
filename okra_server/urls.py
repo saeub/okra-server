@@ -9,8 +9,8 @@ urlpatterns = [
     path("login", admin.site.login),
     path("logout", admin.site.logout),
     path(
-        "registration_details/<participant_id>",
-        views.registration_details,
+        "registration/<participant_id>",
+        views.registration_detail,
         name="registration-detail",
     ),
     path(

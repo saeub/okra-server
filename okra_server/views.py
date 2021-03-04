@@ -4,7 +4,7 @@ import json
 
 import qrcode
 from django.http.request import HttpRequest
-from django.http.response import JsonResponse
+from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render, reverse
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, View
@@ -12,10 +12,12 @@ from django.views.generic import ListView, View
 from okra_server import models
 
 
-def registration_details(request: HttpRequest, participant_id: str):
+def registration_detail(request: HttpRequest, participant_id: str):
     participant = models.Participant.objects.get(id=participant_id)
-    base_url = request.build_absolute_uri("/api")
+    if participant.device_key is not None:
+        return HttpResponse("already registered", status=404)
 
+    base_url = request.build_absolute_uri("/api")
     data = f"{base_url}\n" f"{participant.id}\n" f"{participant.registration_key}"
     image = qrcode.make(data)
     image_bytes = io.BytesIO()
