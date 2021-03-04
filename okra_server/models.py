@@ -2,6 +2,7 @@ import random
 import string
 import uuid
 from functools import partial
+from typing import Iterable
 
 from django.db import models
 from django.utils import timezone
@@ -61,18 +62,23 @@ class Experiment(models.Model):
     def __str__(self):
         return f'Experiment "{self.title}" ({self.task_type})'
 
-    def get_n_tasks(self, participant: Participant) -> int:
+    def get_assignments(self, participant: Participant) -> Iterable["TaskAssignment"]:
         return TaskAssignment.objects.filter(
-            participant=participant,
             task__in=self.tasks.all(),
-        ).count()
+            participant=participant,
+        )
+
+    def get_n_tasks(self, participant: Participant) -> int:
+        return self.get_assignments(participant).count()
 
     def get_n_tasks_done(self, participant: Participant) -> int:
-        return TaskAssignment.objects.filter(
-            participant=participant,
-            task__in=self.tasks.all(),
-            started_time__isnull=False,
-        ).count()
+        return (
+            self.get_assignments(participant)
+            .filter(
+                started_time__isnull=False,
+            )
+            .count()
+        )
 
     def start_task(self, participant: Participant) -> "Task":
         assignment = TaskAssignment.objects.filter(
@@ -87,6 +93,7 @@ class Experiment(models.Model):
 
 class Task(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    label = models.CharField(max_length=50, blank=True)
     experiment = models.ForeignKey(
         Experiment,
         on_delete=models.CASCADE,
