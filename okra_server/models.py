@@ -58,7 +58,7 @@ class Experiment(models.Model):
     title = models.CharField(max_length=100)
     cover_image_url = models.URLField(null=True)
     instructions = models.TextField()
-    practice_task = models.ForeignKey(
+    practice_task = models.OneToOneField(
         "Task",
         null=True,
         on_delete=models.SET_NULL,
@@ -114,10 +114,13 @@ class Task(models.Model):
         return f'Task "{self.id}" of {self.experiment}'
 
     def finish(self, participant: Participant, results: dict):
-        if self.practice_experiment is not None:
+        try:
+            self.practice_experiment
             # TODO: Store results for practice trials
             # (This may happen multiple times per participant and experiment)
             return
+        except Experiment.DoesNotExist:
+            pass
 
         self.assignments.get(
             participant=participant,
