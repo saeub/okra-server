@@ -34,10 +34,10 @@
             axios
                 .post("", this.data)
                 .then((response) => {
-                this.message = response.data.message;
-                if (response.data.redirect !== undefined) {
-                    window.location.href = response.data.redirect;
-                }
+                    this.message = response.data.message;
+                    if (response.data.redirect !== undefined) {
+                        window.location.href = response.data.redirect;
+                    }
                 });
             },
         },

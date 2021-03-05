@@ -5,6 +5,11 @@ Vue.component("experiment-form", {
       <li>Title: <input type="text" v-model="data.title" @input="emitData()"></li>
       <li>Instructions: <textarea v-model="data.instructions" @input="emitData()"></textarea></li>
       <li>
+        Practice task:
+        <input type="checkbox" v-model="hasPracticeTask">
+        <task v-if="data.practiceTask !== null" v-model="data.practiceTask" @input="emitData()"></task>
+      </li>
+      <li>
         Tasks:
         <ul>
           <li v-for="(task, i) in data.tasks" :key="'task-' + task.key">
@@ -34,6 +39,7 @@ Vue.component("experiment-form", {
 
   data() {
     const data = { ...this.value };
+    const hasPracticeTask = data.practiceTask !== null;
     let taskKeyCounter = 0;
     for (task of data.tasks) {
       task.key = taskKeyCounter;
@@ -42,6 +48,7 @@ Vue.component("experiment-form", {
     return {
       data: { ...this.value },
       taskKeyCounter,
+      hasPracticeTask,
     };
   },
 
@@ -64,6 +71,21 @@ Vue.component("experiment-form", {
 
     emitData() {
       this.$emit("input", this.data);
+    },
+  },
+
+  watch: {
+    hasPracticeTask(newHasPracticeTask) {
+      if (newHasPracticeTask) {
+        this.data.practiceTask = {
+          id: uuidv4(),
+          label: `practice-task`,
+          data: {},
+        };
+      } else {
+        this.data.practiceTask = null;
+      }
+      this.emitData();
     },
   },
 });

@@ -51,6 +51,13 @@ class ExperimentDetail(View):
                     "id": str(experiment.id),
                     "title": experiment.title,
                     "instructions": experiment.instructions,
+                    "practiceTask": {
+                        "id": str(experiment.practice_task.id),
+                        "label": experiment.practice_task.label,
+                        "data": experiment.practice_task.data,
+                    }
+                    if experiment.practice_task is not None
+                    else None,
                     "tasks": [
                         {
                             "id": str(task.id),
@@ -78,8 +85,20 @@ class ExperimentDetail(View):
     def post(self, request, experiment_id=None):
         experiment = self._get_experiment(experiment_id)
         data = json.loads(request.body)
+
         experiment.title = data["title"]
         experiment.instructions = data["instructions"]
+
+        if experiment.practice_task is not None:
+            experiment.practice_task.delete()
+            experiment.practice_task = None
+        practice_task_data = data["practiceTask"]
+        if practice_task_data is not None:
+            experiment.practice_task = self._get_task(practice_task_data["id"])
+            experiment.practice_task.label = practice_task_data["label"]
+            experiment.practice_task.data = practice_task_data["data"]
+            experiment.practice_task.save()
+
         experiment.tasks.all().delete()
         for task_data in data["tasks"]:
             task = self._get_task(task_data["id"])
@@ -93,7 +112,9 @@ class ExperimentDetail(View):
                     participant_id=assignment_data["participant"],
                     task_id=task_id,
                 )
+
         experiment.save()
+
         return JsonResponse(
             {
                 "message": "Saved",

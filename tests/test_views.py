@@ -6,10 +6,14 @@ from okra_server.models import Experiment, Participant, Task, TaskAssignment, Ta
 
 @pytest.fixture
 def experiments(registered_participant):
+    pt = Task.objects.create(
+        data={"practice": "task"},
+    )
     e1 = Experiment.objects.create(
         task_type=TaskType.QUESTION_ANSWERING,
         title="Test experiment",
         instructions="Read the text and answer the questions.",
+        practice_task=pt,
     )
     t1 = Task.objects.create(
         experiment=e1,
@@ -102,6 +106,13 @@ def test_post_experiment_detail(authenticated_client, experiments):
         data = {
             "title": "New title",
             "instructions": "New instructions",
+            "practiceTask": {
+                "id": str(experiment.practice_task.id),
+                "label": "New practice task",
+                "data": {"new": "practice data"},
+            }
+            if experiment.practice_task is not None
+            else None,
             "tasks": [
                 {
                     "id": str(task.id),
@@ -125,6 +136,9 @@ def test_post_experiment_detail(authenticated_client, experiments):
         experiment.refresh_from_db()
         assert experiment.title == "New title"
         assert experiment.instructions == "New instructions"
+        if experiment.practice_task is not None:
+            assert experiment.practice_task.label == "New practice task"
+            assert experiment.practice_task.data == {"new": "practice data"}
         for task in experiment.tasks.all():
             assert task.label == "New label"
             assert task.data == {"new": "data"}
@@ -140,6 +154,7 @@ def test_post_experiment_detail_delete_tasks(authenticated_client, experiments):
         data = {
             "title": "New title",
             "instructions": "New instructions",
+            "practiceTask": None,
             "tasks": [],
             "assignments": [],
         }
@@ -148,6 +163,7 @@ def test_post_experiment_detail_delete_tasks(authenticated_client, experiments):
         )
         assert response.status_code == 200, response.content
         experiment.refresh_from_db()
+        assert experiment.practice_task is None
         assert experiment.tasks.count() == 0
         for participant in Participant.objects.all():
             assert experiment.get_assignments(participant).count() == 0

@@ -58,6 +58,12 @@ class Experiment(models.Model):
     title = models.CharField(max_length=100)
     cover_image_url = models.URLField(null=True)
     instructions = models.TextField()
+    practice_task = models.ForeignKey(
+        "Task",
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="practice_experiment",
+    )
 
     def __str__(self):
         return f'Experiment "{self.title}" ({self.task_type})'
@@ -80,7 +86,9 @@ class Experiment(models.Model):
             .count()
         )
 
-    def start_task(self, participant: Participant) -> "Task":
+    def start_task(self, participant: Participant, practice: bool = False) -> "Task":
+        if practice:
+            return self.practice_task
         assignment = TaskAssignment.objects.filter(
             participant=participant,
             started_time__isnull=True,
@@ -96,6 +104,7 @@ class Task(models.Model):
     label = models.CharField(max_length=50, blank=True)
     experiment = models.ForeignKey(
         Experiment,
+        null=True,
         on_delete=models.CASCADE,
         related_name="tasks",
     )
@@ -105,6 +114,11 @@ class Task(models.Model):
         return f'Task "{self.id}" of {self.experiment}'
 
     def finish(self, participant: Participant, results: dict):
+        if self.practice_experiment is not None:
+            # TODO: Store results for practice trials
+            # (This may happen multiple times per participant and experiment)
+            return
+
         self.assignments.get(
             participant=participant,
             finished_time__isnull=True,
