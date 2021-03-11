@@ -13,7 +13,11 @@
 
 {% block content %}
     <div id="app">
-        <experiment-form v-model="data"></experiment-form>
+        <experiment-form
+            :task-type-choices="taskTypeChoices"
+            :rating-type-choices="ratingTypeChoices"
+            v-model="data">
+        </experiment-form>
         <input type="button" value="Save" v-on:click="submit()">
         [[ message ]]
     </div>
@@ -21,26 +25,30 @@
         axios.defaults.xsrfCookieName = "csrftoken"
         axios.defaults.xsrfHeaderName = "X-CSRFTOKEN"
         const initialData = {{ data|to_js }};
+        const taskTypeChoices = {{ task_type_choices|to_js }};
+        const ratingTypeChoices = {{ rating_type_choices|to_js }};
 
         var app = new Vue({
         el: "#app",
         delimiters: ["[[", "]]"],
         data: {
             data: initialData,
+            taskTypeChoices,
+            ratingTypeChoices,
             message: null,
         },
         methods: {
             submit() {
-            axios
-                .post("", this.data)
-                .then((response) => {
-                this.message = response.data.message;
-                if (response.data.redirect !== undefined) {
-                    window.location.href = response.data.redirect;
-                }
-                });
+                axios
+                    .post("", this.data)
+                    .then((response) => {
+                        this.message = response.data.message;
+                        if (response.data.redirect !== undefined) {
+                            window.location.href = response.data.redirect;
+                        }
+                    });
+                },
             },
-        },
         });
     </script>
 {% endblock content %}

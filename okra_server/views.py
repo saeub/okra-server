@@ -49,8 +49,18 @@ class ExperimentDetail(View):
             {
                 "data": {
                     "id": str(experiment.id),
+                    "taskType": experiment.task_type,
                     "title": experiment.title,
                     "instructions": experiment.instructions,
+                    "practiceTask": (
+                        {
+                            "id": str(experiment.practice_task.id),
+                            "label": experiment.practice_task.label,
+                            "data": experiment.practice_task.data,
+                        }
+                        if experiment.practice_task is not None
+                        else None
+                    ),
                     "tasks": [
                         {
                             "id": str(task.id),
@@ -58,6 +68,16 @@ class ExperimentDetail(View):
                             "data": task.data,
                         }
                         for task in experiment.tasks.all()
+                    ],
+                    "ratings": [
+                        {
+                            "id": str(rating.id),
+                            "question": rating.question,
+                            "type": rating.rating_type,
+                            "lowExtreme": rating.low_extreme,
+                            "highExtreme": rating.high_extreme,
+                        }
+                        for rating in experiment.ratings.all()
                     ],
                     "assignments": [
                         {
@@ -72,14 +92,36 @@ class ExperimentDetail(View):
                         for participant in models.Participant.objects.all()
                     ],
                 },
+                "task_type_choices": {
+                    type_id: type_name for type_id, type_name in models.TaskType.choices
+                },
+                "rating_type_choices": {
+                    type_id: type_name
+                    for type_id, type_name in models.TaskRatingType.choices
+                },
             },
         )
 
     def post(self, request, experiment_id=None):
         experiment = self._get_experiment(experiment_id)
         data = json.loads(request.body)
+
+        experiment.task_type = data["taskType"]
         experiment.title = data["title"]
         experiment.instructions = data["instructions"]
+
+        if experiment.practice_task is not None:
+            experiment.practice_task.delete()
+            experiment.practice_task = None
+        practice_task_data = data["practiceTask"]
+        if practice_task_data is not None:
+            experiment.practice_task = self._get_task(practice_task_data["id"])
+            experiment.practice_task.label = practice_task_data["label"]
+            experiment.practice_task.data = practice_task_data["data"]
+            experiment.practice_task.save()
+
+        experiment.save()
+
         experiment.tasks.all().delete()
         for task_data in data["tasks"]:
             task = self._get_task(task_data["id"])
@@ -93,7 +135,17 @@ class ExperimentDetail(View):
                     participant_id=assignment_data["participant"],
                     task_id=task_id,
                 )
-        experiment.save()
+
+        experiment.ratings.all().delete()
+        for rating_data in data["ratings"]:
+            rating = self._get_rating(rating_data["id"])
+            rating.experiment = experiment
+            rating.question = rating_data["question"]
+            rating.rating_type = rating_data["type"]
+            rating.low_extreme = rating_data["lowExtreme"]
+            rating.high_extreme = rating_data["highExtreme"]
+            rating.save()
+
         return JsonResponse(
             {
                 "message": "Saved",
@@ -117,6 +169,13 @@ class ExperimentDetail(View):
             return models.Task.objects.get(id=task_id)
         except models.Task.DoesNotExist:
             return models.Task(id=task_id)
+
+    @staticmethod
+    def _get_rating(rating_id) -> models.TaskRating:
+        try:
+            return models.TaskRating.objects.get(id=rating_id)
+        except models.TaskRating.DoesNotExist:
+            return models.TaskRating(id=rating_id)
 
 
 class ParticipantList(ListView):

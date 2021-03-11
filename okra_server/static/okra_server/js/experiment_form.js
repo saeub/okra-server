@@ -2,8 +2,21 @@ Vue.component("experiment-form", {
   template: `
     <ul>
       <li>ID: <input type="text" v-model="data.id" @input="emitData()" disabled></li>
+      <li>
+        Task type:
+        <select v-model="data.taskType" @input="emitData()">
+          <option v-for="(typeName, typeId) in taskTypeChoices" :value="typeId">
+            {{ typeName }}
+          </option>
+        </select>
+      </li>
       <li>Title: <input type="text" v-model="data.title" @input="emitData()"></li>
       <li>Instructions: <textarea v-model="data.instructions" @input="emitData()"></textarea></li>
+      <li>
+        Practice task:
+        <input type="checkbox" v-model="hasPracticeTask">
+        <task v-if="data.practiceTask !== null" v-model="data.practiceTask" @input="emitData()"></task>
+      </li>
       <li>
         Tasks:
         <ul>
@@ -13,6 +26,16 @@ Vue.component("experiment-form", {
           </li>
         </ul>
         <input type="button" value="Add task" @click="addTask()">
+      </li>
+      <li>
+        Task ratings:
+        <ul>
+          <li v-for="(rating, i) in data.ratings" :key="'rating-' + rating.key">
+            <input type="button" value="Remove rating" @click="removeRating(i)">
+            <rating :rating-type-choices="ratingTypeChoices" v-model="data.ratings[i]"></rating>
+          </li>
+        </ul>
+        <input type="button" value="Add rating" @click="addRating()">
       </li>
       <li>
         Assignments:
@@ -30,18 +53,34 @@ Vue.component("experiment-form", {
       type: Object,
       required: true,
     },
+    taskTypeChoices: {
+      type: Object,
+      required: true,
+    },
+    ratingTypeChoices: {
+      type: Object,
+      required: true,
+    },
   },
 
   data() {
     const data = { ...this.value };
+    const hasPracticeTask = data.practiceTask !== null;
     let taskKeyCounter = 0;
     for (task of data.tasks) {
       task.key = taskKeyCounter;
       taskKeyCounter++;
     }
+    let ratingKeyCounter = 0;
+    for (rating of data.ratings) {
+      rating.key = ratingKeyCounter;
+      ratingKeyCounter++;
+    }
     return {
       data: { ...this.value },
       taskKeyCounter,
+      ratingKeyCounter,
+      hasPracticeTask,
     };
   },
 
@@ -62,8 +101,41 @@ Vue.component("experiment-form", {
       this.emitData();
     },
 
+    addRating() {
+      this.data.ratings.push({
+        id: uuidv4(),
+        key: this.ratingKeyCounter,
+        question: "",
+        type: "emoticon",
+        lowExtreme: null,
+        highExtreme: null,
+      });
+      this.ratingKeyCounter++;
+      this.emitData();
+    },
+
+    removeRating(index) {
+      this.data.ratings.splice(index, 1);
+      this.emitData();
+    },
+
     emitData() {
       this.$emit("input", this.data);
+    },
+  },
+
+  watch: {
+    hasPracticeTask(newHasPracticeTask) {
+      if (newHasPracticeTask) {
+        this.data.practiceTask = {
+          id: uuidv4(),
+          label: `practice-task`,
+          data: {},
+        };
+      } else {
+        this.data.practiceTask = null;
+      }
+      this.emitData();
     },
   },
 });
@@ -93,6 +165,47 @@ Vue.component("task", {
   methods: {
     emitData() {
       this.$emit("input", this.task);
+    },
+  },
+});
+
+Vue.component("rating", {
+  template: `
+    <ul>
+      <li>ID: <input type="text" v-model="rating.id" @input="emitData()" disabled></li>
+      <li>Question: <input type="text" v-model="rating.question" @input="emitData()"></li>
+      <li>
+        Type:
+        <select v-model="rating.type" @input="emitData()">
+          <option v-for="(typeName, typeId) in ratingTypeChoices" :value="typeId">
+            {{ typeName }}
+          </option>
+        </select>
+      <li>Low extreme: <input type="text" v-model="rating.lowExtreme" @input="emitData()"></li>
+      <li>High extreme: <input type="text" v-model="rating.highExtreme" @input="emitData()"></li>
+    </ul>
+  `,
+
+  props: {
+    value: {
+      type: Object,
+      required: true,
+    },
+    ratingTypeChoices: {
+      type: Object,
+      required: true,
+    },
+  },
+
+  data() {
+    return {
+      rating: { ...this.value },
+    };
+  },
+
+  methods: {
+    emitData() {
+      this.$emit("input", this.rating);
     },
   },
 });

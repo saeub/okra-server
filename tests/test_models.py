@@ -6,10 +6,14 @@ from okra_server.models import Experiment, Task, TaskAssignment, TaskType
 
 @pytest.fixture
 def experiment(registered_participant):
+    pt = Task.objects.create(
+        data={"practice": "task"},
+    )
     e = Experiment.objects.create(
         task_type=TaskType.QUESTION_ANSWERING,
         title="Test experiment",
         instructions="Read the text and answer the questions.",
+        practice_task=pt,
     )
     t1 = Task.objects.create(
         experiment=e,
@@ -57,3 +61,15 @@ def test_task_start_finish(registered_participant, experiment):
 
     with pytest.raises(NoTasksAvailable):
         experiment.start_task(registered_participant)
+
+
+def test_practice_task_start_finish(registered_participant, experiment):
+    assert experiment.get_n_tasks(registered_participant) == 2
+    assert experiment.get_n_tasks_done(registered_participant) == 0
+
+    practice_task = experiment.start_task(registered_participant, practice=True)
+    assert practice_task.data == {"practice": "task"}
+    practice_task.finish(registered_participant, {})
+
+    assert experiment.get_n_tasks(registered_participant) == 2
+    assert experiment.get_n_tasks_done(registered_participant) == 0

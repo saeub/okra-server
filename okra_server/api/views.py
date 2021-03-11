@@ -36,7 +36,7 @@ NO_ASSIGNABLE_TASKS_RESPONSE = JsonResponse(
 )
 
 
-def api_view(method: str, check_credentials: bool = False):
+def api_view(method: str, check_credentials: bool = False, query_params: bool = False):
     def decorator(view):
         @wraps(view)
         @require_http_methods([method])
@@ -68,6 +68,9 @@ def api_view(method: str, check_credentials: bool = False):
             else:
                 data = {}
 
+            if query_params:
+                kwargs["query_params"] = request.GET
+
             return view(data, *args, participant=participant, **kwargs)
 
         return inner
@@ -86,6 +89,7 @@ def _serialize_experiment(
         "instructions": experiment.instructions,
         "nTasks": experiment.get_n_tasks(participant),
         "nTasksDone": experiment.get_n_tasks_done(participant),
+        "hasPracticeTask": experiment.practice_task is not None,
         "ratings": [_serialize_rating(rating) for rating in experiment.ratings.all()],
     }
 
@@ -152,13 +156,15 @@ def get_experiment(data: dict, experiment_id: str, participant: models.Participa
     return JsonResponse(_serialize_experiment(experiment, participant))
 
 
-@api_view("POST", check_credentials=True)
-def start_task(data: dict, experiment_id: str, participant: models.Participant):
+@api_view("POST", check_credentials=True, query_params=True)
+def start_task(
+    data: dict, experiment_id: str, participant: models.Participant, query_params: dict
+):
     try:
         experiment = participant.experiments.get(id=experiment_id)
     except models.Experiment.DoesNotExist:
         return NOT_FOUND_RESPONSE
-    task = experiment.start_task(participant)
+    task = experiment.start_task(participant, query_params.get("practice") == "true")
     if task is None:
         return NO_ASSIGNABLE_TASKS_RESPONSE
     return JsonResponse(_serialize_task(task))
@@ -168,12 +174,7 @@ def start_task(data: dict, experiment_id: str, participant: models.Participant):
 def finish_task(data: dict, task_id: str, participant: models.Participant):
     try:
         task = models.Task.objects.get(id=task_id)
-        assignment = models.TaskAssignment.objects.get(
-            participant=participant,
-            task=task,
-        )
+        task.finish(participant, data)
     except (models.Task.DoesNotExist, models.TaskAssignment.DoesNotExist):
         return NOT_FOUND_RESPONSE
-    assignment.finish(data)
-    assignment.save()
     return JsonResponse({})
