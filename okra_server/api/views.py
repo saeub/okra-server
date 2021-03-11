@@ -164,7 +164,7 @@ def start_task(
         experiment = participant.experiments.get(id=experiment_id)
     except models.Experiment.DoesNotExist:
         return NOT_FOUND_RESPONSE
-    task = experiment.start_task(participant, query_params.get("practice"))
+    task = experiment.start_task(participant, query_params.get("practice") == "true")
     if task is None:
         return NO_ASSIGNABLE_TASKS_RESPONSE
     return JsonResponse(_serialize_task(task))

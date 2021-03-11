@@ -99,6 +99,8 @@ class ExperimentDetail(View):
             experiment.practice_task.data = practice_task_data["data"]
             experiment.practice_task.save()
 
+        experiment.save()
+
         experiment.tasks.all().delete()
         for task_data in data["tasks"]:
             task = self._get_task(task_data["id"])
@@ -112,8 +114,6 @@ class ExperimentDetail(View):
                     participant_id=assignment_data["participant"],
                     task_id=task_id,
                 )
-
-        experiment.save()
 
         return JsonResponse(
             {
