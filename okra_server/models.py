@@ -172,6 +172,7 @@ class TaskRatingType(models.TextChoices):
 
 
 class TaskRating(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     experiment = models.ForeignKey(
         Experiment,
         on_delete=models.CASCADE,

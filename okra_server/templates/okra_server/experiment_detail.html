@@ -13,7 +13,11 @@
 
 {% block content %}
     <div id="app">
-        <experiment-form :task-type-choices="taskTypeChoices" v-model="data"></experiment-form>
+        <experiment-form
+            :task-type-choices="taskTypeChoices"
+            :rating-type-choices="ratingTypeChoices"
+            v-model="data">
+        </experiment-form>
         <input type="button" value="Save" v-on:click="submit()">
         [[ message ]]
     </div>
@@ -22,6 +26,7 @@
         axios.defaults.xsrfHeaderName = "X-CSRFTOKEN"
         const initialData = {{ data|to_js }};
         const taskTypeChoices = {{ task_type_choices|to_js }};
+        const ratingTypeChoices = {{ rating_type_choices|to_js }};
 
         var app = new Vue({
         el: "#app",
@@ -29,6 +34,7 @@
         data: {
             data: initialData,
             taskTypeChoices,
+            ratingTypeChoices,
             message: null,
         },
         methods: {

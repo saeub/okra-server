@@ -28,6 +28,16 @@ Vue.component("experiment-form", {
         <input type="button" value="Add task" @click="addTask()">
       </li>
       <li>
+        Task ratings:
+        <ul>
+          <li v-for="(rating, i) in data.ratings" :key="'rating-' + rating.key">
+            <input type="button" value="Remove rating" @click="removeRating(i)">
+            <rating :rating-type-choices="ratingTypeChoices" v-model="data.ratings[i]"></rating>
+          </li>
+        </ul>
+        <input type="button" value="Add rating" @click="addRating()">
+      </li>
+      <li>
         Assignments:
         <ul>
           <li v-for="assignment in data.assignments" :key="'participant-' + assignment.participant">
@@ -47,6 +57,10 @@ Vue.component("experiment-form", {
       type: Object,
       required: true,
     },
+    ratingTypeChoices: {
+      type: Object,
+      required: true,
+    },
   },
 
   data() {
@@ -57,9 +71,15 @@ Vue.component("experiment-form", {
       task.key = taskKeyCounter;
       taskKeyCounter++;
     }
+    let ratingKeyCounter = 0;
+    for (rating of data.ratings) {
+      rating.key = ratingKeyCounter;
+      ratingKeyCounter++;
+    }
     return {
       data: { ...this.value },
       taskKeyCounter,
+      ratingKeyCounter,
       hasPracticeTask,
     };
   },
@@ -78,6 +98,24 @@ Vue.component("experiment-form", {
 
     removeTask(index) {
       this.data.tasks.splice(index, 1);
+      this.emitData();
+    },
+
+    addRating() {
+      this.data.ratings.push({
+        id: uuidv4(),
+        key: this.ratingKeyCounter,
+        question: "",
+        type: "emoticon",
+        lowExtreme: null,
+        highExtreme: null,
+      });
+      this.ratingKeyCounter++;
+      this.emitData();
+    },
+
+    removeRating(index) {
+      this.data.ratings.splice(index, 1);
       this.emitData();
     },
 
@@ -127,6 +165,47 @@ Vue.component("task", {
   methods: {
     emitData() {
       this.$emit("input", this.task);
+    },
+  },
+});
+
+Vue.component("rating", {
+  template: `
+    <ul>
+      <li>ID: <input type="text" v-model="rating.id" @input="emitData()" disabled></li>
+      <li>Question: <input type="text" v-model="rating.question" @input="emitData()"></li>
+      <li>
+        Type:
+        <select v-model="rating.type" @input="emitData()">
+          <option v-for="(typeName, typeId) in ratingTypeChoices" :value="typeId">
+            {{ typeName }}
+          </option>
+        </select>
+      <li>Low extreme: <input type="text" v-model="rating.lowExtreme" @input="emitData()"></li>
+      <li>High extreme: <input type="text" v-model="rating.highExtreme" @input="emitData()"></li>
+    </ul>
+  `,
+
+  props: {
+    value: {
+      type: Object,
+      required: true,
+    },
+    ratingTypeChoices: {
+      type: Object,
+      required: true,
+    },
+  },
+
+  data() {
+    return {
+      rating: { ...this.value },
+    };
+  },
+
+  methods: {
+    emitData() {
+      this.$emit("input", this.rating);
     },
   },
 });
