@@ -104,6 +104,7 @@ def test_get_experiment_detail(authenticated_client, experiments):
 def test_post_experiment_detail(authenticated_client, experiments):
     for experiment in experiments:
         data = {
+            "taskType": "cloze",
             "title": "New title",
             "instructions": "New instructions",
             "practiceTask": {
@@ -134,6 +135,7 @@ def test_post_experiment_detail(authenticated_client, experiments):
         )
         assert response.status_code == 200, response.content
         experiment.refresh_from_db()
+        assert experiment.task_type == "cloze"
         assert experiment.title == "New title"
         assert experiment.instructions == "New instructions"
         if experiment.practice_task is not None:
@@ -152,6 +154,7 @@ def test_post_experiment_detail(authenticated_client, experiments):
 def test_post_experiment_detail_delete_tasks(authenticated_client, experiments):
     for experiment in experiments:
         data = {
+            "taskType": "cloze",
             "title": "New title",
             "instructions": "New instructions",
             "practiceTask": None,

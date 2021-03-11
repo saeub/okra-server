@@ -2,6 +2,14 @@ Vue.component("experiment-form", {
   template: `
     <ul>
       <li>ID: <input type="text" v-model="data.id" @input="emitData()" disabled></li>
+      <li>
+        Task type:
+        <select v-model="data.taskType" @input="emitData()">
+          <option v-for="(typeName, typeId) in taskTypeChoices" :value="typeId">
+            {{ typeName }}
+          </option>
+        </select>
+      </li>
       <li>Title: <input type="text" v-model="data.title" @input="emitData()"></li>
       <li>Instructions: <textarea v-model="data.instructions" @input="emitData()"></textarea></li>
       <li>
@@ -32,6 +40,10 @@ Vue.component("experiment-form", {
 
   props: {
     value: {
+      type: Object,
+      required: true,
+    },
+    taskTypeChoices: {
       type: Object,
       required: true,
     },

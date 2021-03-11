@@ -49,15 +49,18 @@ class ExperimentDetail(View):
             {
                 "data": {
                     "id": str(experiment.id),
+                    "taskType": experiment.task_type,
                     "title": experiment.title,
                     "instructions": experiment.instructions,
-                    "practiceTask": {
-                        "id": str(experiment.practice_task.id),
-                        "label": experiment.practice_task.label,
-                        "data": experiment.practice_task.data,
-                    }
-                    if experiment.practice_task is not None
-                    else None,
+                    "practiceTask": (
+                        {
+                            "id": str(experiment.practice_task.id),
+                            "label": experiment.practice_task.label,
+                            "data": experiment.practice_task.data,
+                        }
+                        if experiment.practice_task is not None
+                        else None
+                    ),
                     "tasks": [
                         {
                             "id": str(task.id),
@@ -79,6 +82,9 @@ class ExperimentDetail(View):
                         for participant in models.Participant.objects.all()
                     ],
                 },
+                "task_type_choices": {
+                    type_id: type_name for type_id, type_name in models.TaskType.choices
+                },
             },
         )
 
@@ -86,6 +92,7 @@ class ExperimentDetail(View):
         experiment = self._get_experiment(experiment_id)
         data = json.loads(request.body)
 
+        experiment.task_type = data["taskType"]
         experiment.title = data["title"]
         experiment.instructions = data["instructions"]
 
