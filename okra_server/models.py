@@ -92,6 +92,7 @@ class Experiment(models.Model):
         if practice:
             return self.practice_task
         assignment = TaskAssignment.objects.filter(
+            task__experiment=self,
             participant=participant,
             started_time__isnull=True,
         ).first()
