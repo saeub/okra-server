@@ -129,6 +129,7 @@ class Task(models.Model):
 
 
 class TaskAssignment(models.Model):
+    id = models.AutoField(primary_key=True)
     participant = models.ForeignKey(
         Participant,
         on_delete=models.CASCADE,
