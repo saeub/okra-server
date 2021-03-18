@@ -4,6 +4,7 @@ from pathlib import Path
 
 import django_heroku
 import dotenv
+from corsheaders.defaults import default_headers
 
 dotenv.load_dotenv()
 
@@ -17,6 +18,15 @@ DEBUG = os.getenv("DJANGO_DEBUG", "false").lower() in ["true", "yes"]
 
 ALLOWED_HOSTS = []
 
+if os.getenv("APP_URL"):
+    CORS_ALLOWED_ORIGINS = [
+        os.getenv("APP_URL"),
+    ]
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "X-Participant-ID",
+    "X-Device-Key",
+]
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -24,12 +34,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     "okra_server",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
