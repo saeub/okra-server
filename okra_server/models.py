@@ -33,7 +33,7 @@ class Participant(models.Model):
     def experiments(self) -> models.QuerySet:
         experiments = Experiment.objects.filter(
             tasks__assignments__participant=self,
-        )
+        ).distinct()
         return experiments
 
     def unregister(self):
@@ -48,8 +48,10 @@ class Participant(models.Model):
 class TaskType(models.TextChoices):
     CLOZE = "cloze", "Cloze test"
     LEXICAL_DECISION = "lexical-decision", "Lexical decision"
+    N_BACK = "n-back", "n-back"
     PICTURE_NAMING = "picture-naming", "Picture-naming"
     QUESTION_ANSWERING = "question-answering", "Question answering"
+    REACTION_TIME = "reaction-time", "Reaction time"
 
 
 class Experiment(models.Model):
@@ -90,6 +92,7 @@ class Experiment(models.Model):
         if practice:
             return self.practice_task
         assignment = TaskAssignment.objects.filter(
+            task__experiment=self,
             participant=participant,
             started_time__isnull=True,
         ).first()
