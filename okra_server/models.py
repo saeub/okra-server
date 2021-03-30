@@ -170,7 +170,8 @@ class TaskAssignment(models.Model):
 
 
 class TaskRatingType(models.TextChoices):
-    EMOTICON = "emoticon", "Emoticons"
+    EMOTICON = "emoticon", "Emoticons (right-positive)"
+    EMOTICON_REVERSED = "emoticon-reversed", "Emoticons (left-positive)"
     RADIO = "radio", "Radio buttons"
     SLIDER = "slider", "Slider"
 
