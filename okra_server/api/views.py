@@ -8,7 +8,7 @@ from django.http.response import HttpResponseBadRequest, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from okra_server import models
+from okra_server import exceptions, models
 
 MISSING_HEADERS_RESPONSE = JsonResponse(
     {
@@ -32,7 +32,7 @@ NO_ASSIGNABLE_TASKS_RESPONSE = JsonResponse(
     {
         "error": "No tasks left",
     },
-    status=406,
+    status=404,
 )
 
 
@@ -164,8 +164,11 @@ def start_task(
         experiment = participant.experiments.get(id=experiment_id)
     except models.Experiment.DoesNotExist:
         return NOT_FOUND_RESPONSE
-    task = experiment.start_task(participant, query_params.get("practice") == "true")
-    if task is None:
+    try:
+        task = experiment.start_task(
+            participant, query_params.get("practice") == "true"
+        )
+    except exceptions.NoTasksAvailable:
         return NO_ASSIGNABLE_TASKS_RESPONSE
     return JsonResponse(_serialize_task(task))
 

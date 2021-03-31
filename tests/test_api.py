@@ -110,9 +110,47 @@ def test_start_finish_task(client, registered_participant, experiment):
     assert experiment.get_n_tasks_done(registered_participant) == 1
 
 
+def test_start_restart_task(client, registered_participant, experiment):
+    assignment = registered_participant.assignments.get()
+    assert assignment.started_time is None
+    assert experiment.get_n_tasks_done(registered_participant) == 0
+
+    response = client.post(
+        f"/api/experiments/{experiment.id}/start",
+        content_type="application/json",
+        HTTP_X_PARTICIPANT_ID=registered_participant.id,
+        HTTP_X_DEVICE_KEY=registered_participant.device_key,
+    )
+    assignment.refresh_from_db()
+    assert response.status_code == 200, response.content
+    assert response.json()["id"] == str(assignment.task.id)
+    assert response.json()["data"] == assignment.task.data
+    assert assignment.started_time is not None
+    assert assignment.finished_time is None
+    assert assignment.results is None
+    assert experiment.get_n_tasks_done(registered_participant) == 1
+
+    # Start next task without finishing
+    response = client.post(
+        f"/api/experiments/{experiment.id}/start",
+        content_type="application/json",
+        HTTP_X_PARTICIPANT_ID=registered_participant.id,
+        HTTP_X_DEVICE_KEY=registered_participant.device_key,
+    )
+    assignment.refresh_from_db()
+    assert response.status_code == 404, response.content
+    assert response.json()["error"] == "No tasks left"
+    assert assignment.started_time is not None
+    assert assignment.finished_time is not None
+    assert assignment.results is None
+    assert experiment.get_n_tasks_done(registered_participant) == 1
+
+
 def test_start_finish_practice_task(client, registered_participant, experiment):
     with pytest.raises(TaskAssignment.DoesNotExist):
-        registered_participant.assignments.get(task=experiment.practice_task)
+        registered_participant.assignments.get(
+            task=experiment.practice_task, finished_time=None
+        )
     assert experiment.get_n_tasks_done(registered_participant) == 0
 
     response = client.post(
@@ -121,7 +159,86 @@ def test_start_finish_practice_task(client, registered_participant, experiment):
         HTTP_X_PARTICIPANT_ID=registered_participant.id,
         HTTP_X_DEVICE_KEY=registered_participant.device_key,
     )
-    assignment = registered_participant.assignments.get(task=experiment.practice_task)
+    assignment = registered_participant.assignments.get(
+        task=experiment.practice_task, finished_time=None
+    )
+    assert response.status_code == 200, response.content
+    assert (
+        response.json()["id"]
+        == str(assignment.task.id)
+        == str(experiment.practice_task.id)
+    )
+    assert (
+        response.json()["data"] == assignment.task.data == experiment.practice_task.data
+    )
+    assert assignment.started_time is not None
+    assert assignment.finished_time is None
+    assert assignment.results is None
+    assert experiment.get_n_tasks_done(registered_participant) == 0
+
+    results = {
+        "data": {"dummy_key": "dummy_value"},
+        "events": [{"time": "dummy_time", "label": "dummy_label", "data": None}],
+    }
+    response = client.post(
+        f"/api/tasks/{response.json()['id']}/finish",
+        results,
+        content_type="application/json",
+        HTTP_X_PARTICIPANT_ID=registered_participant.id,
+        HTTP_X_DEVICE_KEY=registered_participant.device_key,
+    )
+    assignment.refresh_from_db()
+    assert response.status_code == 200, response.content
+    assert assignment.started_time is not None
+    assert assignment.finished_time is not None
+    assert assignment.results == results
+    assert experiment.get_n_tasks_done(registered_participant) == 0
+
+
+def test_start_restart_finish_practice_task(client, registered_participant, experiment):
+    with pytest.raises(TaskAssignment.DoesNotExist):
+        registered_participant.assignments.get(
+            task=experiment.practice_task, finished_time=None
+        )
+    assert experiment.get_n_tasks_done(registered_participant) == 0
+
+    response = client.post(
+        f"/api/experiments/{experiment.id}/start?practice=true",
+        content_type="application/json",
+        HTTP_X_PARTICIPANT_ID=registered_participant.id,
+        HTTP_X_DEVICE_KEY=registered_participant.device_key,
+    )
+    assignment = registered_participant.assignments.get(
+        task=experiment.practice_task, finished_time=None
+    )
+    assert response.status_code == 200, response.content
+    assert (
+        response.json()["id"]
+        == str(assignment.task.id)
+        == str(experiment.practice_task.id)
+    )
+    assert (
+        response.json()["data"] == assignment.task.data == experiment.practice_task.data
+    )
+    assert assignment.started_time is not None
+    assert assignment.finished_time is None
+    assert assignment.results is None
+    assert experiment.get_n_tasks_done(registered_participant) == 0
+
+    # Restart practice task without finishing
+    response = client.post(
+        f"/api/experiments/{experiment.id}/start?practice=true",
+        content_type="application/json",
+        HTTP_X_PARTICIPANT_ID=registered_participant.id,
+        HTTP_X_DEVICE_KEY=registered_participant.device_key,
+    )
+    assignment.refresh_from_db()
+    assert assignment.started_time is not None
+    assert assignment.finished_time is not None
+    assert assignment.results is None
+    assignment = registered_participant.assignments.get(
+        task=experiment.practice_task, finished_time=None
+    )
     assert response.status_code == 200, response.content
     assert (
         response.json()["id"]

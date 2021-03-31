@@ -2,7 +2,7 @@ import random
 import string
 import uuid
 from functools import partial
-from typing import Iterable
+from typing import Iterable, Optional
 
 from django.db import models
 from django.utils import timezone
@@ -89,6 +89,14 @@ class Experiment(models.Model):
         )
 
     def start_task(self, participant: Participant, practice: bool = False) -> "Task":
+        # Cancel previously started and unfinished assignments
+        canceled_assignments = TaskAssignment.objects.filter(
+            participant=participant,
+            started_time__isnull=False,
+            finished_time__isnull=True,
+        )
+        for assignment in canceled_assignments:
+            assignment.finish(None)
         if practice:
             assignment = TaskAssignment.objects.create(
                 participant=participant,
@@ -120,7 +128,7 @@ class Task(models.Model):
     def __str__(self):
         return f'Task "{self.id}" of {self.experiment}'
 
-    def finish(self, participant: Participant, results: dict):
+    def finish(self, participant: Participant, results: Optional[dict]):
         self.assignments.get(
             participant=participant,
             finished_time__isnull=True,
@@ -145,12 +153,6 @@ class TaskAssignment(models.Model):
 
     class Meta:
         ordering = ["id"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["participant", "task"],
-                name="unique_assignment",
-            ),
-        ]
 
     def start(self):
         self.started_time = timezone.now()
