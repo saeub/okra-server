@@ -90,12 +90,16 @@ class Experiment(models.Model):
 
     def start_task(self, participant: Participant, practice: bool = False) -> "Task":
         if practice:
-            return self.practice_task
-        assignment = TaskAssignment.objects.filter(
-            task__experiment=self,
-            participant=participant,
-            started_time__isnull=True,
-        ).first()
+            assignment = TaskAssignment.objects.create(
+                participant=participant,
+                task=self.practice_task,
+            )
+        else:
+            assignment = TaskAssignment.objects.filter(
+                task__experiment=self,
+                participant=participant,
+                started_time__isnull=True,
+            ).first()
         if assignment is None:
             raise NoTasksAvailable()
         assignment.start()
@@ -117,14 +121,6 @@ class Task(models.Model):
         return f'Task "{self.id}" of {self.experiment}'
 
     def finish(self, participant: Participant, results: dict):
-        try:
-            self.practice_experiment
-            # TODO: Store results for practice trials
-            # (This may happen multiple times per participant and experiment)
-            return
-        except Experiment.DoesNotExist:
-            pass
-
         self.assignments.get(
             participant=participant,
             finished_time__isnull=True,
