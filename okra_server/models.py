@@ -52,6 +52,7 @@ class TaskType(models.TextChoices):
     PICTURE_NAMING = "picture-naming", "Picture-naming"
     QUESTION_ANSWERING = "question-answering", "Question answering"
     REACTION_TIME = "reaction-time", "Reaction time"
+    SIMON_GAME = "simon-game", "Simon game"
 
 
 class Experiment(models.Model):
