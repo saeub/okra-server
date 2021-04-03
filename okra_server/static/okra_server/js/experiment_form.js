@@ -254,11 +254,11 @@ Vue.component("task-assignments", {
   template: `
     <div>
       {{ participant }}
-      <select v-for="(taskId, i) in taskIds" :value="taskIds[i]" @input="onInput(i, $event.target.value)">
+      <select v-for="(assignment, i) in assignments" :value="assignments[i].id" @input="onInput(i, $event.target.value)" :disabled="assignment.started">
         <option value="DELETED">- DELETE -</option>
         <option v-for="task in tasks" :key="task.id" :value="task.id">{{ task.label }}</option>
       </select>
-      <input type="button" value="+" @click="addTask()" :disabled="getFreeTaskId() === null">
+      <input type="button" value="+" @click="addTask()" :disabled="getAvailableAssignment() === null">
     </div>
   `,
 
@@ -279,39 +279,51 @@ Vue.component("task-assignments", {
 
   data() {
     return {
-      taskIds: [...this.value],
+      assignments: [...this.value],
     };
   },
 
   methods: {
-    getFreeTaskId() {
+    getAvailableAssignment() {
       for (const task of this.tasks) {
-        if (this.taskIds.indexOf(task.id) === -1) {
-          return task.id;
+        var taken = false;
+        for (const assignment of this.assignments) {
+          if (assignment.id == task.id) {
+            taken = true;
+            break;
+          }
+        }
+        if (!taken) {
+          return {
+            id: task.id,
+            started: false,
+          };
         }
       }
       return null;
     },
 
     addTask() {
-      const freeId = this.getFreeTaskId();
-      if (freeId !== null) {
-        this.taskIds.push(freeId);
+      const availableAssignment = this.getAvailableAssignment();
+      console.log(availableAssignment);
+      if (availableAssignment !== null) {
+        this.assignments.push(availableAssignment);
       }
       this.emitData();
     },
 
     onInput(index, value) {
       if (value === "DELETED") {
-        this.taskIds.splice(index, 1);
+        this.assignments.splice(index, 1);
       } else {
-        this.taskIds[index] = value;
+        this.assignments[index] = { id: value, started: false };
       }
+      console.log(this.assignments);
       this.emitData();
     },
 
     emitData() {
-      this.$emit("input", this.taskIds);
+      this.$emit("input", this.assignments);
     },
   },
 
@@ -321,9 +333,9 @@ Vue.component("task-assignments", {
       for (task of newTasks) {
         newTaskIds.push(task.id);
       }
-      for (let i = 0; i < this.taskIds.length; i++) {
-        if (newTaskIds.indexOf(this.taskIds[i]) === -1) {
-          this.taskIds.splice(i, 1);
+      for (let i = 0; i < this.assignments.length; i++) {
+        if (newTaskIds.indexOf(this.assignments[i].id) === -1) {
+          this.assignments.splice(i, 1);
           i--;
         }
       }
