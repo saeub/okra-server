@@ -254,7 +254,7 @@ Vue.component("task-assignments", {
   template: `
     <div>
       {{ participant }}
-      <select v-for="(assignment, i) in assignments" :value="assignments[i].id" @input="onInput(i, $event.target.value)">
+      <select v-for="(assignment, i) in assignments" :value="assignments[i].id" @input="onInput(i, $event.target.value)" :disabled="assignment.started">
         <option value="DELETED">- DELETE -</option>
         <option v-for="task in tasks" :key="task.id" :value="task.id">{{ task.label }}</option>
       </select>
