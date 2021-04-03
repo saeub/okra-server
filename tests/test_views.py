@@ -146,7 +146,10 @@ def test_post_experiment_detail(authenticated_client, experiments):
             "assignments": [
                 {
                     "participant": str(participant.id),
-                    "tasks": [str(task.id) for task in experiment.tasks.all()],
+                    "tasks": [
+                        {"id": str(task.id), "started": False}
+                        for task in experiment.tasks.all()
+                    ],
                 }
                 for participant in models.Participant.objects.all()
             ],

@@ -83,7 +83,10 @@ class ExperimentDetail(View):
                         {
                             "participant": str(participant.id),
                             "tasks": [
-                                str(assignment.task.id)
+                                {
+                                    "id": str(assignment.task.id),
+                                    "started": assignment.started_time is not None,
+                                }
                                 for assignment in experiment.get_assignments(
                                     participant
                                 )
@@ -122,18 +125,31 @@ class ExperimentDetail(View):
 
         experiment.save()
 
-        experiment.tasks.all().delete()
+        tasks_to_delete = set(experiment.tasks.all())
         for task_data in data["tasks"]:
             task = self._get_task(task_data["id"])
+            if task in tasks_to_delete:
+                tasks_to_delete.remove(task)
             task.experiment = experiment
             task.label = task_data["label"]
             task.data = task_data["data"]
             task.save()
+        for task in tasks_to_delete:
+            task.delete()
+
         for assignment_data in data["assignments"]:
-            for task_id in assignment_data["tasks"]:
+            participant = models.Participant.objects.get(
+                id=assignment_data["participant"]
+            )
+            experiment.get_assignments(participant).filter(
+                started_time__isnull=True
+            ).delete()
+            for task_data in assignment_data["tasks"]:
+                if task_data["started"]:
+                    continue
                 models.TaskAssignment.objects.create(
-                    participant_id=assignment_data["participant"],
-                    task_id=task_id,
+                    participant=participant,
+                    task_id=task_data["id"],
                 )
 
         experiment.ratings.all().delete()
