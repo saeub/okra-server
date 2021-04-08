@@ -1,6 +1,7 @@
 import base64
 import io
 import json
+import uuid
 
 import qrcode
 from django.http.request import HttpRequest
@@ -113,10 +114,13 @@ class ExperimentDetail(View):
         experiment.title = data["title"]
         experiment.instructions = data["instructions"]
 
-        if experiment.practice_task is not None:
+        practice_task_data = data["practiceTask"]
+        if experiment.practice_task is not None and (
+            practice_task_data is None
+            or experiment.practice_task.id != uuid.UUID(practice_task_data["id"])
+        ):
             experiment.practice_task.delete()
             experiment.practice_task = None
-        practice_task_data = data["practiceTask"]
         if practice_task_data is not None:
             experiment.practice_task = self._get_task(practice_task_data["id"])
             experiment.practice_task.label = practice_task_data["label"]

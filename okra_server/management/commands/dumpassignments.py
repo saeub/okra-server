@@ -21,6 +21,9 @@ class Command(BaseCommand):
             experiment = Experiment.objects.get(id=options["experiment"])
             assignments = assignments.filter(task__experiment=experiment)
         for assignment in assignments:
+            experiment = (
+                assignment.task.experiment or assignment.task.practice_experiment
+            )
             print(
                 json.dumps(
                     {
@@ -28,8 +31,9 @@ class Command(BaseCommand):
                         "participantId": str(assignment.participant.id),
                         "taskId": str(assignment.task.id),
                         "taskLabel": assignment.task.label,
-                        "experimentId": str(assignment.task.experiment.id),
-                        "taskType": assignment.task.experiment.task_type,
+                        "experimentId": str(experiment.id),
+                        "practice": assignment.task.experiment is None,
+                        "taskType": experiment.task_type,
                         "startedTime": (
                             assignment.started_time.isoformat()
                             if assignment.started_time is not None

@@ -127,6 +127,8 @@ class Task(models.Model):
     data = models.JSONField()
 
     def __str__(self):
+        if self.experiment is None:
+            return f'Practice task "{self.id}" of {self.practice_experiment}'
         return f'Task "{self.id}" of {self.experiment}'
 
     def finish(self, participant: Participant, results: Optional[dict]):
