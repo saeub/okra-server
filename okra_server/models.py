@@ -16,11 +16,14 @@ def _random_key(length: int):
     return key
 
 
+new_registration_key = partial(_random_key, 24)
+
+
 class Participant(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     device_key = models.CharField(max_length=24, null=True)
     registration_key = models.CharField(
-        max_length=24, null=True, default=partial(_random_key, 24)
+        max_length=24, null=True, default=new_registration_key
     )
 
     def __str__(self):
@@ -36,9 +39,9 @@ class Participant(models.Model):
         ).distinct()
         return experiments
 
-    def unregister(self):
+    def unregister(self, registration_key: Optional[str] = None):
         self.device_key = None
-        self.registration_key = _random_key(24)
+        self.registration_key = registration_key or new_registration_key()
 
     def register(self):
         self.device_key = _random_key(24)

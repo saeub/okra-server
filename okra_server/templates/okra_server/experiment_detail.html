@@ -22,8 +22,8 @@
         [[ message ]]
     </div>
     <script>
-        axios.defaults.xsrfCookieName = "csrftoken"
-        axios.defaults.xsrfHeaderName = "X-CSRFTOKEN"
+        axios.defaults.xsrfCookieName = "csrftoken";
+        axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
         const initialData = {{ data|to_js }};
         const taskTypeChoices = {{ task_type_choices|to_js }};
         const ratingTypeChoices = {{ rating_type_choices|to_js }};
