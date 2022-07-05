@@ -3,6 +3,7 @@
 {% block title %}Participants{% endblock title %}
 
 {% block content %}
+    <h1>Participants</h1>
     <div class="list-group mb-2">
         {% for participant in participant_list %}
             <a class="list-group-item" href="{% url 'registration-detail' participant.id %}">

@@ -14,7 +14,36 @@ from okra_server import models
 
 
 def index(request: HttpRequest):
-    return render(request, "okra_server/index.html")
+    participants = models.Participant.objects.all()
+    return render(
+        request,
+        "okra_server/index.html",
+        {
+            "experiments": [
+                {
+                    "id": str(experiment.id),
+                    "title": experiment.title,
+                    "task_type": dict(models.TaskType.choices)[experiment.task_type],
+                    "participants": [
+                        {
+                            "id": str(participant.id),
+                            "n_practice_tasks_done": experiment.get_n_tasks_done(
+                                participant,
+                                practice=True,
+                            ),
+                            "n_tasks": experiment.get_n_tasks(participant),
+                            "n_tasks_done": experiment.get_n_tasks_done(participant),
+                            "percent_done": experiment.get_n_tasks_done(participant)
+                            / (experiment.get_n_tasks(participant) or 1)
+                            * 100,
+                        }
+                        for participant in participants
+                    ],
+                }
+                for experiment in models.Experiment.objects.all()
+            ]
+        },
+    )
 
 
 def registration_detail(request, participant_id):

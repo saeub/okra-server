@@ -45,12 +45,14 @@ def test_participant_register(unregistered_participant):
 def test_task_start_finish(registered_participant, experiment):
     assert experiment.get_n_tasks(registered_participant) == 2
     assert experiment.get_n_tasks_done(registered_participant) == 0
+    assert experiment.get_n_tasks_done(registered_participant, practice=True) == 0
 
     task1 = experiment.start_task(registered_participant)
     task1.finish(registered_participant, {})
 
     assert experiment.get_n_tasks(registered_participant) == 2
     assert experiment.get_n_tasks_done(registered_participant) == 1
+    assert experiment.get_n_tasks_done(registered_participant, practice=True) == 0
 
     task2 = experiment.start_task(registered_participant)
     assert task2 != task1
@@ -58,6 +60,7 @@ def test_task_start_finish(registered_participant, experiment):
 
     assert experiment.get_n_tasks(registered_participant) == 2
     assert experiment.get_n_tasks_done(registered_participant) == 2
+    assert experiment.get_n_tasks_done(registered_participant, practice=True) == 0
 
     with pytest.raises(NoTasksAvailable):
         experiment.start_task(registered_participant)
@@ -66,6 +69,7 @@ def test_task_start_finish(registered_participant, experiment):
 def test_practice_task_start_finish(registered_participant, experiment):
     assert experiment.get_n_tasks(registered_participant) == 2
     assert experiment.get_n_tasks_done(registered_participant) == 0
+    assert experiment.get_n_tasks_done(registered_participant, practice=True) == 0
 
     practice_task = experiment.start_task(registered_participant, practice=True)
     assert practice_task.data == {"practice": "task"}
@@ -73,3 +77,12 @@ def test_practice_task_start_finish(registered_participant, experiment):
 
     assert experiment.get_n_tasks(registered_participant) == 2
     assert experiment.get_n_tasks_done(registered_participant) == 0
+    assert experiment.get_n_tasks_done(registered_participant, practice=True) == 1
+
+    practice_task = experiment.start_task(registered_participant, practice=True)
+    assert practice_task.data == {"practice": "task"}
+    practice_task.finish(registered_participant, {})
+
+    assert experiment.get_n_tasks(registered_participant) == 2
+    assert experiment.get_n_tasks_done(registered_participant) == 0
+    assert experiment.get_n_tasks_done(registered_participant, practice=True) == 2
