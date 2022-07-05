@@ -50,12 +50,15 @@ class Participant(models.Model):
 
 class TaskType(models.TextChoices):
     CLOZE = "cloze", "Cloze test"
+    DIGIT_SPAN = "digit-span", "Digit span"
     LEXICAL_DECISION = "lexical-decision", "Lexical decision"
     N_BACK = "n-back", "n-back"
     PICTURE_NAMING = "picture-naming", "Picture-naming"
     QUESTION_ANSWERING = "question-answering", "Question answering"
     REACTION_TIME = "reaction-time", "Reaction time"
+    READING = "reading", "Reading"
     SIMON_GAME = "simon-game", "Simon game"
+    TRAIL_MAKING = "trail-making", "Trail making"
 
 
 class Experiment(models.Model):
