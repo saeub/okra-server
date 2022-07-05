@@ -13,7 +13,11 @@ from django.views.generic import ListView, View
 from okra_server import models
 
 
-def registration_detail(request: HttpRequest, participant_id: str):
+def index(request: HttpRequest):
+    return render(request, "okra_server/index.html")
+
+
+def registration_detail(request, participant_id):
     participant = models.Participant.objects.get(id=participant_id)
     if participant.device_key is not None:
         return HttpResponse("already registered", status=404)

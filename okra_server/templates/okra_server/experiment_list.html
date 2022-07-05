@@ -3,10 +3,15 @@
 {% block title %}Experiments{% endblock title %}
 
 {% block content %}
-    <ul>
+    <div class="list-group mb-2">
         {% for experiment in experiment_list %}
-            <li><a href="{% url 'experiment-detail' experiment.id %}">{{ experiment.title }} ({{ experiment.id }})</a></li>
+            <a class="list-group-item" href="{% url 'experiment-detail' experiment.id %}">
+                <b>{{ experiment.title }}</b> ({{ experiment.id }})
+            </a>
         {% endfor %}
-        <li><a href="{% url 'experiment-new' %}">New experiment</a></li>
-    </ul>
+    </div>
+    <a class="btn btn-primary" href="{% url 'experiment-new' %}">
+        <i class="bi bi-plus me-2"></i>
+        New experiment
+    </a>
 {% endblock content %}

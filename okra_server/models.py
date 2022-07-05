@@ -130,7 +130,7 @@ class Task(models.Model):
         on_delete=models.CASCADE,
         related_name="tasks",
     )
-    data = models.JSONField()
+    data = models.JSONField(null=True)
 
     def __str__(self):
         if self.experiment is None:

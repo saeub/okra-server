@@ -1,51 +1,83 @@
 Vue.component("experiment-form", {
   template: `
-    <ul>
-      <li>ID: <input type="text" v-model="data.id" @input="emitData()" disabled></li>
-      <li>
-        Task type:
-        <select v-model="data.taskType" @input="emitData()">
+    <div>
+      <h1>Experiment "{{ data.title }}"</h1>
+      <div class="input-group mb-2">
+        <span class="input-group-text">ID</span>
+        <input type="text" class="form-control" v-model="data.id" @input="emitData()" disabled>
+      </div>
+      <div class="form-floating mb-2">
+        <select class="form-select" v-model="data.taskType" @input="emitData()">
           <option v-for="(typeName, typeId) in taskTypeChoices" :value="typeId">
             {{ typeName }}
           </option>
         </select>
-      </li>
-      <li>Title: <input type="text" v-model="data.title" @input="emitData()"></li>
-      <li>Instructions: <textarea v-model="data.instructions" @input="emitData()"></textarea></li>
-      <li>
-        Practice task:
-        <input type="checkbox" v-model="hasPracticeTask">
+        <label>Task type</label>
+      </div>
+      <div class="form-floating mb-2">
+        <input type="text" class="form-control" v-model="data.title" @input="emitData()"></li>
+        <label>Title</label>
+      </div>
+      <div class="form-floating mb-2">
+        <textarea class="form-control" v-model="data.instructions" @input="emitData()"></textarea></li>
+        <label>Instructions</label>
+      </div>
+      <section class="mb-2">
+        <h2>
+          Practice task
+          <button type="button" class="btn btn-outline-primary btn-sm" v-if="data.practiceTask === null" @click="addPracticeTask()"><i class="bi bi-plus"></i></button>
+          <button type="button" class="btn btn-outline-danger btn-sm" v-else @click="removePracticeTask()"><i class="bi bi-trash-fill"></i></button>
+        </h2>
         <task v-if="data.practiceTask !== null" v-model="data.practiceTask" @input="emitData()"></task>
-      </li>
-      <li>
-        Tasks:
-        <ul>
-          <li v-for="(task, i) in data.tasks" :key="'task-' + task.key">
-            <input type="button" value="Remove task" @click="removeTask(i)">
-            <task v-model="data.tasks[i]"></task>
+      </section>
+      <section class="mb-2">
+        <h2>Tasks</h2>
+        <div class="accordion mb-2">
+          <div class="accordion-item" v-for="(task, i) in data.tasks" :key="'task-' + task.key">
+            <h3 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#task-collapse-' + task.key">
+                <button type="button" class="btn btn-outline-danger btn-sm me-2" @click="removeTask(i)"><i class="bi bi-trash-fill"></i></button>
+                {{ task.label }}
+              </button>
+            </h3>
+            <div class="accordion-collapse collapse hide" :id="'task-collapse-' + task.key">
+              <div class="accordion-body">
+                <task v-model="data.tasks[i]"></task>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-outline-primary" @click="addTask()"><i class="bi bi-plus"></i></button>
+      </section>
+      <section class="mb-2">
+        <h2>Task ratings</h2>
+        <div class="accordion mb-2">
+          <div class="accordion-item" v-for="(rating, i) in data.ratings" :key="'rating-' + rating.key">
+            <h3 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#rating-collapse-' + rating.key">
+                <button type="button" class="btn btn-outline-danger btn-sm me-2" @click="removeRating(i)"><i class="bi bi-trash-fill"></i></button>
+                {{ rating.question }}
+              </button>
+            </h3>
+            <div class="accordion-collapse collapse hide" :id="'rating-collapse-' + rating.key">
+              <div class="accordion-body">
+                <rating :rating-type-choices="ratingTypeChoices" v-model="data.ratings[i]"></rating>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-outline-primary" value="Add rating" @click="addRating()"><i class="bi bi-plus"></i></button>
+      </section>
+      <section>
+        <h2>Assignments</h2>
+        <ul class="list-group">
+          <li class="list-group-item" v-for="assignment in data.assignments" :key="'participant-' + assignment.participant">
+            <h3 class="h6">Participant: {{ assignment.participant }}</h3>
+            <task-assignments :tasks="data.tasks" v-model="assignment.tasks"></task-assignments>
           </li>
         </ul>
-        <input type="button" value="Add task" @click="addTask()">
-      </li>
-      <li>
-        Task ratings:
-        <ul>
-          <li v-for="(rating, i) in data.ratings" :key="'rating-' + rating.key">
-            <input type="button" value="Remove rating" @click="removeRating(i)">
-            <rating :rating-type-choices="ratingTypeChoices" v-model="data.ratings[i]"></rating>
-          </li>
-        </ul>
-        <input type="button" value="Add rating" @click="addRating()">
-      </li>
-      <li>
-        Assignments:
-        <ul>
-          <li v-for="assignment in data.assignments" :key="'participant-' + assignment.participant">
-            <task-assignments :participant="assignment.participant" :tasks="data.tasks" v-model="assignment.tasks"></task-assignments>
-          </li>
-        </ul>
-      </li>
-    </ul>
+      </section>
+    </div>
   `,
 
   props: {
@@ -85,6 +117,20 @@ Vue.component("experiment-form", {
   },
 
   methods: {
+    addPracticeTask() {
+      this.data.practiceTask = {
+        id: uuidv4(),
+        label: `practice-task`,
+        data: {},
+      };
+      this.emitData();
+    },
+
+    removePracticeTask() {
+      this.data.practiceTask = null;
+      this.emitData();
+    },
+
     addTask() {
       this.data.tasks.push({
         id: uuidv4(),
@@ -123,30 +169,21 @@ Vue.component("experiment-form", {
       this.$emit("input", this.data);
     },
   },
-
-  watch: {
-    hasPracticeTask(newHasPracticeTask) {
-      if (newHasPracticeTask) {
-        this.data.practiceTask = {
-          id: uuidv4(),
-          label: `practice-task`,
-          data: {},
-        };
-      } else {
-        this.data.practiceTask = null;
-      }
-      this.emitData();
-    },
-  },
 });
 
 Vue.component("task", {
   template: `
-    <ul>
-      <li>ID: <input type="text" v-model="task.id" @input="emitData()" disabled></li>
-      <li>Label: <input type="text" v-model="task.label" @input="emitData()"></li>
-      <li>Data: <json-editor v-model="task.data" @input="emitData()"></json-editor></li>
-    </ul>
+    <div>
+      <div class="input-group mb-2">
+        <span class="input-group-text">ID</span>
+        <input type="text" class="form-control" v-model="task.id" @input="emitData()" disabled>
+      </div>
+      <div class="form-floating mb-2">
+        <input type="text" class="form-control" v-model="task.label" @input="emitData()">
+        <label>Label</label>
+      </div>
+      <json-editor v-model="task.data" @input="emitData()"></json-editor>
+    </div>
   `,
 
   props: {
@@ -171,19 +208,40 @@ Vue.component("task", {
 
 Vue.component("rating", {
   template: `
-    <ul>
-      <li>ID: <input type="text" v-model="rating.id" @input="emitData()" disabled></li>
-      <li>Question: <input type="text" v-model="rating.question" @input="emitData()"></li>
-      <li>
-        Type:
-        <select v-model="rating.type" @input="emitData()">
+    <div>
+      <div class="input-group mb-2">
+        <span class="input-group-text">ID</span>
+        <input type="rating" class="form-control" v-model="rating.id" @input="emitData()" disabled>
+      </div>
+      <div class="form-floating mb-2">
+        <input type="text" class="form-control" v-model="rating.question" @input="emitData()">
+        <label>Question</label>
+      </div>
+      <div class="form-floating mb-2">
+        <select class="form-select" v-model="rating.type" @input="emitData()">
           <option v-for="(typeName, typeId) in ratingTypeChoices" :value="typeId">
             {{ typeName }}
           </option>
         </select>
-      <li>Low extreme: <input type="text" v-model="rating.lowExtreme" @input="emitData()"></li>
-      <li>High extreme: <input type="text" v-model="rating.highExtreme" @input="emitData()"></li>
-    </ul>
+        <label>Type</label>
+      </div>
+      <div class="container">
+        <div class="row row-cols-2">
+          <div class="col ps-0 pe-1">
+            <div class="form-floating">
+              <input type="text" class="form-control" v-model="rating.lowExtreme" @input="emitData()">
+              <label>Low extreme</label>
+            </div>
+          </div>
+          <div class="col pe-0 ps-1">
+            <div class="form-floating">
+              <input type="text" class="form-control" v-model="rating.highExtreme" @input="emitData()">
+              <label>High extreme</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   `,
 
   props: {
@@ -212,13 +270,11 @@ Vue.component("rating", {
 
 Vue.component("json-editor", {
   template: `
-    <div>
-      <textarea v-model="text" @input="validate()">{{ text }}</textarea>
-      <div v-if="error !== null" style="color: red">
+    <div class="form-floating">
+      <textarea :class="{'form-control': true, 'is-invalid': error !== null}" v-model="text" @input="validate()">{{ text }}</textarea>
+      <label>{{ label }}</label>
+      <div class="alert alert-danger" v-if="error !== null" style="color: red">
         {{ error }}
-      </div>
-      <div v-else style="color: green">
-        Valid.
       </div>
     </div>
   `,
@@ -227,6 +283,10 @@ Vue.component("json-editor", {
     value: {
       type: undefined,
       required: true,
+    },
+    label: {
+      type: String,
+      default: "Data",
     },
   },
 
@@ -245,6 +305,7 @@ Vue.component("json-editor", {
         this.$emit("input", data);
       } catch (e) {
         this.error = e;
+        this.$emit("input", null);
       }
     },
   },
@@ -252,21 +313,16 @@ Vue.component("json-editor", {
 
 Vue.component("task-assignments", {
   template: `
-    <div>
-      {{ participant }}
-      <select v-for="(assignment, i) in assignments" :value="assignments[i].id" @input="onInput(i, $event.target.value)" :disabled="assignment.started">
+    <div class="input-group">
+      <select class="form-select" style="flex: unset; width: unset" v-for="(assignment, i) in assignments" :value="assignments[i].id" @input="onInput(i, $event.target.value)" :disabled="assignment.started">
         <option value="DELETED">- DELETE -</option>
         <option v-for="task in tasks" :key="task.id" :value="task.id">{{ task.label }}</option>
       </select>
-      <input type="button" value="+" @click="addTask()" :disabled="getAvailableAssignment() === null">
+      <button type="button" class="btn btn-outline-primary" @click="addTask()" :disabled="getAvailableAssignment() === null"><i class="bi bi-plus"></i></button>
     </div>
   `,
 
   props: {
-    participant: {
-      type: String,
-      required: true,
-    },
     tasks: {
       type: Array,
       required: true,

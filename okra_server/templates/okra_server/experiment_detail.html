@@ -2,7 +2,7 @@
 {% load static %}
 {% load js %}
 
-{% block title %}Experiment: {{ experiment.title }}{% endblock title %}
+{% block title %}Experiment: {{ data.title }}{% endblock title %}
 
 {% block head %}
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
@@ -14,12 +14,13 @@
 {% block content %}
     <div id="app">
         <experiment-form
+            class="mb-2"
             :task-type-choices="taskTypeChoices"
             :rating-type-choices="ratingTypeChoices"
             v-model="data">
         </experiment-form>
-        <input type="button" value="Save" v-on:click="submit()">
-        [[ message ]]
+        <button type="button" class="btn btn-primary mb-2" v-on:click="submit()"><i class="bi bi-save me-2"></i>Save</button>
+        <span class="ms-2">[[ message ]]</span>
     </div>
     <script>
         axios.defaults.xsrfCookieName = "csrftoken";
