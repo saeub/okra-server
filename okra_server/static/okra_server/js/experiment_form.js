@@ -19,7 +19,7 @@ Vue.component("experiment-form", {
         <label>Title</label>
       </div>
       <div class="form-floating mb-2">
-        <textarea class="form-control" v-model="data.instructions" @input="emitData()"></textarea></li>
+        <textarea class="form-control" style="height: 100px" v-model="data.instructions" @input="emitData()"></textarea></li>
         <label>Instructions</label>
       </div>
       <section class="mb-2">
@@ -271,7 +271,7 @@ Vue.component("rating", {
 Vue.component("json-editor", {
   template: `
     <div class="form-floating">
-      <textarea :class="{'form-control': true, 'is-invalid': error !== null}" v-model="text" @input="validate()">{{ text }}</textarea>
+      <textarea :class="{'form-control': true, 'is-invalid': error !== null}" style="height: 150px" v-model="text" @input="validate()">{{ text }}</textarea>
       <label>{{ label }}</label>
       <div class="alert alert-danger" v-if="error !== null" style="color: red">
         {{ error }}
