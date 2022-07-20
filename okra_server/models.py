@@ -50,12 +50,15 @@ class Participant(models.Model):
 
 class TaskType(models.TextChoices):
     CLOZE = "cloze", "Cloze test"
+    DIGIT_SPAN = "digit-span", "Digit span"
     LEXICAL_DECISION = "lexical-decision", "Lexical decision"
     N_BACK = "n-back", "n-back"
     PICTURE_NAMING = "picture-naming", "Picture-naming"
     QUESTION_ANSWERING = "question-answering", "Question answering"
     REACTION_TIME = "reaction-time", "Reaction time"
+    READING = "reading", "Reading"
     SIMON_GAME = "simon-game", "Simon game"
+    TRAIL_MAKING = "trail-making", "Trail making"
 
 
 class Experiment(models.Model):
@@ -83,14 +86,24 @@ class Experiment(models.Model):
     def get_n_tasks(self, participant: Participant) -> int:
         return self.get_assignments(participant).count()
 
-    def get_n_tasks_done(self, participant: Participant) -> int:
-        return (
-            self.get_assignments(participant)
-            .filter(
+    def get_n_tasks_done(
+        self, participant: Participant, practice: bool = False, finished: bool = False
+    ) -> int:
+        if practice:
+            assignments = TaskAssignment.objects.filter(
+                task=self.practice_task,
+                participant=participant,
                 started_time__isnull=False,
             )
-            .count()
-        )
+        else:
+            assignments = self.get_assignments(participant).filter(
+                started_time__isnull=False,
+            )
+
+        if finished:
+            assignments = assignments.filter(finished_time__isnull=False)
+
+        return assignments.count()
 
     def start_task(self, participant: Participant, practice: bool = False) -> "Task":
         # Cancel previously started and unfinished assignments
@@ -127,7 +140,7 @@ class Task(models.Model):
         on_delete=models.CASCADE,
         related_name="tasks",
     )
-    data = models.JSONField()
+    data = models.JSONField(null=True)
 
     def __str__(self):
         if self.experiment is None:

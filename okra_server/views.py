@@ -13,7 +13,53 @@ from django.views.generic import ListView, View
 from okra_server import models
 
 
-def registration_detail(request: HttpRequest, participant_id: str):
+def index(request: HttpRequest):
+    participants = models.Participant.objects.all()
+    return render(
+        request,
+        "okra_server/index.html",
+        {
+            "experiments": [
+                {
+                    "id": str(experiment.id),
+                    "title": experiment.title,
+                    "task_type": dict(models.TaskType.choices)[experiment.task_type],
+                    "participants": [
+                        {
+                            "id": str(participant.id),
+                            "n_practice_tasks_started": experiment.get_n_tasks_done(
+                                participant,
+                                practice=True,
+                            ),
+                            "n_tasks": experiment.get_n_tasks(participant),
+                            "n_tasks_started": experiment.get_n_tasks_done(participant),
+                            "n_tasks_finished": experiment.get_n_tasks_done(
+                                participant, finished=True
+                            ),
+                            "percent_tasks_finished": experiment.get_n_tasks_done(
+                                participant, finished=True
+                            )
+                            / (experiment.get_n_tasks(participant) or 1)
+                            * 100,
+                            "percent_tasks_unfinished": (
+                                experiment.get_n_tasks_done(participant)
+                                - experiment.get_n_tasks_done(
+                                    participant, finished=True
+                                )
+                            )
+                            / (experiment.get_n_tasks(participant) or 1)
+                            * 100,
+                        }
+                        for participant in participants
+                    ],
+                }
+                for experiment in models.Experiment.objects.all()
+            ]
+        },
+    )
+
+
+def registration_detail(request, participant_id):
     participant = models.Participant.objects.get(id=participant_id)
     if participant.device_key is not None:
         return HttpResponse("already registered", status=404)

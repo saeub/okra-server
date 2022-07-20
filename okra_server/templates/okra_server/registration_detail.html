@@ -3,19 +3,19 @@
 {% block title %}Registration details{% endblock title %}
 
 {% block content %}
-    <ul>
-        <li>
-            API URL:
-            <input type="text" value="{{ base_url }}" onclick="this.select();" readonly>
-        </li>
-        <li>
-            Participant ID:
-            <input type="text" value="{{ participant_id }}" onclick="this.select();" readonly>
-        </li>
-        <li>
-            Registration key:
-            <input type="text" value="{{ registration_key }}" onclick="this.select();" readonly>
-        </li>
-    </ul>
-    <img src="data:image/png;base64,{{ qr_data }}">
+    <div class="input-group mb-2">
+        <span class="input-group-text">API URL</span>
+        <input type="text" class="form-control" value="{{ base_url }}" onclick="this.select();" readonly>
+    </div>
+    <div class="input-group mb-2">
+        <span class="input-group-text">Participant ID</span>
+        <input type="text" class="form-control" value="{{ participant_id }}" onclick="this.select();" readonly>
+    </div>
+    <div class="input-group mb-2">
+        <span class="input-group-text">Registration key</span>
+        <input type="text" class="form-control" value="{{ registration_key }}" onclick="this.select();" readonly>
+    </div>
+    <div class="text-center">
+        <img src="data:image/png;base64,{{ qr_data }}">
+    </div>
 {% endblock content %}

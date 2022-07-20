@@ -6,8 +6,9 @@ from okra_server import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("login", admin.site.login),
-    path("logout", admin.site.logout),
+    path("login", admin.site.login, name="login"),
+    path("logout", admin.site.logout, name="logout"),
+    path("", views.index),
     path(
         "registration/<participant_id>",
         views.registration_detail,

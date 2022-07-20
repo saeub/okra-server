@@ -1,0 +1,44 @@
+{% extends 'okra_server/base.html' %}
+
+{% block title %}okra-server-example{% endblock title %}
+
+{% block content %}
+    {% if user.is_authenticated %}
+        <h1>Progress report</h1>
+        {% for experiment in experiments %}
+            <div class="card mb-2">
+                <div class="card-body">
+                    <h5 class="card-title">{{ experiment.title }} ({{ experiment.id }})</h5>
+                    <h6 class="card-subtitle">{{ experiment.task_type }}</h6>
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for participant in experiment.participants %}
+                        {% if participant.n_tasks > 0 %}
+                            <li class="list-group-item">
+                                <h6>{{ participant.id }}</h6>
+                                <div class="row">
+                                    <div class="col-auto text-center">
+                                        <small>Practice</small>
+                                        <br>
+                                        <strong>{{ participant.n_practice_tasks_started }}</strong>
+                                    </div>
+                                    <div class="col">
+                                        <small>Tasks</small>
+                                        <div class="progress" style="height: 20px">
+                                            <div class="progress-bar bg-success" style="width: {{ participant.percent_tasks_finished }}%">
+                                                finished
+                                            </div>
+                                            <div class="progress-bar bg-warning" style="width: {{ participant.percent_tasks_unfinished }}%">
+                                                unfinished
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endblock content %}
