@@ -86,22 +86,24 @@ class Experiment(models.Model):
     def get_n_tasks(self, participant: Participant) -> int:
         return self.get_assignments(participant).count()
 
-    def get_n_tasks_done(self, participant: Participant, practice: bool = False) -> int:
+    def get_n_tasks_done(
+        self, participant: Participant, practice: bool = False, finished: bool = False
+    ) -> int:
         if practice:
-            return TaskAssignment.objects.filter(
+            assignments = TaskAssignment.objects.filter(
                 task=self.practice_task,
                 participant=participant,
                 started_time__isnull=False,
-            ).count()
-
-        else:
-            return (
-                self.get_assignments(participant)
-                .filter(
-                    started_time__isnull=False,
-                )
-                .count()
             )
+        else:
+            assignments = self.get_assignments(participant).filter(
+                started_time__isnull=False,
+            )
+
+        if finished:
+            assignments = assignments.filter(finished_time__isnull=False)
+
+        return assignments.count()
 
     def start_task(self, participant: Participant, practice: bool = False) -> "Task":
         # Cancel previously started and unfinished assignments

@@ -27,13 +27,26 @@ def index(request: HttpRequest):
                     "participants": [
                         {
                             "id": str(participant.id),
-                            "n_practice_tasks_done": experiment.get_n_tasks_done(
+                            "n_practice_tasks_started": experiment.get_n_tasks_done(
                                 participant,
                                 practice=True,
                             ),
                             "n_tasks": experiment.get_n_tasks(participant),
-                            "n_tasks_done": experiment.get_n_tasks_done(participant),
-                            "percent_done": experiment.get_n_tasks_done(participant)
+                            "n_tasks_started": experiment.get_n_tasks_done(participant),
+                            "n_tasks_finished": experiment.get_n_tasks_done(
+                                participant, finished=True
+                            ),
+                            "percent_tasks_finished": experiment.get_n_tasks_done(
+                                participant, finished=True
+                            )
+                            / (experiment.get_n_tasks(participant) or 1)
+                            * 100,
+                            "percent_tasks_unfinished": (
+                                experiment.get_n_tasks_done(participant)
+                                - experiment.get_n_tasks_done(
+                                    participant, finished=True
+                                )
+                            )
                             / (experiment.get_n_tasks(participant) or 1)
                             * 100,
                         }

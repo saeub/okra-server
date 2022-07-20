@@ -20,13 +20,16 @@
                                     <div class="col-auto text-center">
                                         <small>Practice</small>
                                         <br>
-                                        <strong>{{ participant.n_practice_tasks_done }}</strong>
+                                        <strong>{{ participant.n_practice_tasks_started }}</strong>
                                     </div>
                                     <div class="col">
                                         <small>Tasks</small>
                                         <div class="progress" style="height: 20px">
-                                            <div class="progress-bar" style="width: {{ participant.percent_done }}%">
-                                                {{ participant.n_tasks_done }} / {{ participant.n_tasks }}
+                                            <div class="progress-bar bg-success" style="width: {{ participant.percent_tasks_finished }}%">
+                                                finished
+                                            </div>
+                                            <div class="progress-bar bg-warning" style="width: {{ participant.percent_tasks_unfinished }}%">
+                                                unfinished
                                             </div>
                                         </div>
                                     </div>
