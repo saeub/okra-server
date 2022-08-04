@@ -5,13 +5,10 @@ from django.urls import include, path
 from okra_server import views
 
 
-def staff_required(function=None):
-    actual_decorator = user_passes_test(
+def staff_required(function):
+    return user_passes_test(
         lambda u: u.is_staff,
-    )
-    if function:
-        return actual_decorator(function)
-    return actual_decorator
+    )(function)
 
 
 urlpatterns = [

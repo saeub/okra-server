@@ -67,6 +67,7 @@ def admin_urls(experiments):
         "/experiments/new",
         f"/experiments/{experiments[0].id}",
         f"/experiments/{experiments[0].id}/results",
+        f"/experiments/{experiments[0].id}/results?download",
     ]
 
 
@@ -92,11 +93,11 @@ def test_unauthenticated(client, public_urls, private_urls, admin_urls):
     for url in private_urls:
         response = client.get(url)
         assert response.status_code == 302, url
-        assert response.url == f"/login?next={url}"
+        assert response.url == f"/login?next={url.replace('?', '%3F')}"
     for url in admin_urls:
         response = client.get(url)
         assert response.status_code == 302, url
-        assert response.url == f"/login?next={url}"
+        assert response.url == f"/login?next={url.replace('?', '%3F')}"
 
 
 def test_authenticated(authenticated_client, public_urls, private_urls, admin_urls):
@@ -109,7 +110,7 @@ def test_authenticated(authenticated_client, public_urls, private_urls, admin_ur
     for url in admin_urls:
         response = authenticated_client.get(url)
         assert response.status_code == 302, url
-        assert response.url == f"/login?next={url}"
+        assert response.url == f"/login?next={url.replace('?', '%3F')}"
 
 
 def test_authenticated_staff(
@@ -124,6 +125,26 @@ def test_authenticated_staff(
     for url in admin_urls:
         response = staff_authenticated_client.get(url)
         assert response.status_code == 200, url
+
+
+def test_get_index(client, experiments, registered_participant):
+    response = client.get("/")
+    assert response.status_code == 200, response.content
+    for experiment in experiments:
+        assert str(experiment.id) not in response.content.decode()
+    assert response.content.decode().count(str(registered_participant.id)) == 0
+
+
+def test_get_index_authenticated(
+    staff_authenticated_client, experiments, registered_participant
+):
+    response = staff_authenticated_client.get("/")
+    assert response.status_code == 200, response.content
+    for experiment in experiments:
+        assert str(experiment.id) in response.content.decode()
+    assert response.content.decode().count(str(registered_participant.id)) == len(
+        experiments
+    )
 
 
 def test_get_experiment_list(staff_authenticated_client, experiments):
