@@ -244,6 +244,46 @@ class ExperimentDetail(View):
             return models.TaskRating(id=rating_id)
 
 
+def experiment_results(request, experiment_id):
+    download = "download" in request.GET
+    experiment = models.Experiment.objects.get(id=experiment_id)
+    results = {
+        "results": [
+            {
+                "participant": participant.id,
+                "practiceTasks": [
+                    {
+                        "task": assignment.task.id,
+                        "results": assignment.results,
+                        "started_time": assignment.started_time,
+                        "finished_time": assignment.finished_time,
+                    }
+                    for assignment in experiment.get_assignments(
+                        participant, practice=True
+                    )
+                ],
+                "tasks": [
+                    {
+                        "task": assignment.task.id,
+                        "results": assignment.results,
+                        "started_time": assignment.started_time,
+                        "finished_time": assignment.finished_time,
+                    }
+                    for assignment in experiment.get_assignments(participant)
+                ],
+            }
+            for participant in models.Participant.objects.all()
+        ],
+    }
+    response = JsonResponse(
+        results,
+        status=200,
+    )
+    if download:
+        response["Content-Disposition"] = f"attachment; filename={experiment.id}.json"
+    return response
+
+
 class ParticipantList(ListView):
     model = models.Participant
 

@@ -30,6 +30,11 @@ urlpatterns = [
         name="experiment-detail",
     ),
     path(
+        "experiments/<uuid:experiment_id>/results",
+        login_required(views.experiment_results),
+        name="experiment-results",
+    ),
+    path(
         "participants",
         login_required(views.ParticipantList.as_view()),
         name="participant-list",
