@@ -4,7 +4,6 @@ import json
 import uuid
 
 import qrcode
-from django.http.request import HttpRequest
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render, reverse
 from django.views.decorators.http import require_POST
@@ -13,7 +12,7 @@ from django.views.generic import ListView, View
 from okra_server import models
 
 
-def index(request: HttpRequest):
+def index(request):
     participants = models.Participant.objects.all()
     return render(
         request,

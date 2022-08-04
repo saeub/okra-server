@@ -77,11 +77,20 @@ class Experiment(models.Model):
     def __str__(self):
         return f'Experiment "{self.title}" ({self.task_type})'
 
-    def get_assignments(self, participant: Participant) -> Iterable["TaskAssignment"]:
-        return TaskAssignment.objects.filter(
-            task__in=self.tasks.all(),
-            participant=participant,
-        )
+    def get_assignments(
+        self, participant: Participant, practice: bool = False
+    ) -> Iterable["TaskAssignment"]:
+        if practice:
+            assignments = TaskAssignment.objects.filter(
+                task=self.practice_task,
+                participant=participant,
+            )
+        else:
+            assignments = TaskAssignment.objects.filter(
+                task__in=self.tasks.all(),
+                participant=participant,
+            )
+        return assignments
 
     def get_n_tasks(self, participant: Participant) -> int:
         return self.get_assignments(participant).count()
@@ -89,16 +98,9 @@ class Experiment(models.Model):
     def get_n_tasks_done(
         self, participant: Participant, practice: bool = False, finished: bool = False
     ) -> int:
-        if practice:
-            assignments = TaskAssignment.objects.filter(
-                task=self.practice_task,
-                participant=participant,
-                started_time__isnull=False,
-            )
-        else:
-            assignments = self.get_assignments(participant).filter(
-                started_time__isnull=False,
-            )
+        assignments = self.get_assignments(participant, practice=practice).filter(
+            started_time__isnull=False,
+        )
 
         if finished:
             assignments = assignments.filter(finished_time__isnull=False)
