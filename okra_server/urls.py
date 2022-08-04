@@ -1,13 +1,23 @@
 from django.contrib import admin
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.urls import include, path
 
 from okra_server import views
 
+
+def superuser_required(function=None):
+    actual_decorator = user_passes_test(
+        lambda u: u.is_superuser,
+    )
+    if function:
+        return actual_decorator(function)
+    return actual_decorator
+
+
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("login", admin.site.login, name="login"),
-    path("logout", admin.site.logout, name="logout"),
+    path("login", views.Login.as_view(), name="login"),
+    path("logout", views.logout, name="logout"),
     path("", views.index),
     path(
         "registration/<participant_id>",
@@ -16,22 +26,22 @@ urlpatterns = [
     ),
     path(
         "experiments",
-        login_required(views.ExperimentList.as_view()),
+        superuser_required(views.ExperimentList.as_view()),
         name="experiment-list",
     ),
     path(
         "experiments/new",
-        login_required(views.ExperimentDetail.as_view()),
+        superuser_required(views.ExperimentDetail.as_view()),
         name="experiment-new",
     ),
     path(
         "experiments/<uuid:experiment_id>",
-        login_required(views.ExperimentDetail.as_view()),
+        superuser_required(views.ExperimentDetail.as_view()),
         name="experiment-detail",
     ),
     path(
         "experiments/<uuid:experiment_id>/results",
-        login_required(views.experiment_results),
+        superuser_required(views.experiment_results),
         name="experiment-results",
     ),
     path(
@@ -41,7 +51,7 @@ urlpatterns = [
     ),
     path(
         "participants/new",
-        login_required(views.new_participant),
+        superuser_required(views.new_participant),
         name="participant-new",
     ),
     path("api/", include("okra_server.api.urls")),

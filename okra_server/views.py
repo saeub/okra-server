@@ -4,6 +4,7 @@ import json
 import uuid
 
 import qrcode
+from django.contrib import auth
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render, reverse
 from django.views.decorators.http import require_POST
@@ -291,3 +292,27 @@ class ParticipantList(ListView):
 def new_participant(request):
     models.Participant.objects.create()
     return redirect("participant-list")
+
+
+class Login(View):
+    def get(self, request):
+        return render(request, "okra_server/login.html")
+
+    def post(self, request):
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user = auth.authenticate(request, username=username, password=password)
+        if user is not None:
+            auth.login(request, user)
+            return redirect(request.GET.get("next") or index)
+        else:
+            return render(
+                request,
+                "okra_server/login.html",
+                {"username": username, "failed": True},
+            )
+
+
+def logout(request):
+    auth.logout(request)
+    return redirect(request.GET.get("next") or index)
