@@ -15,11 +15,11 @@ Vue.component("experiment-form", {
         <label>Task type</label>
       </div>
       <div class="form-floating mb-2">
-        <input type="text" class="form-control" v-model="data.title" @input="emitData()"></li>
+        <input type="text" class="form-control" v-model="data.title" @input="emitData()">
         <label>Title</label>
       </div>
       <div class="form-floating mb-2">
-        <textarea class="form-control" style="height: 100px" v-model="data.instructions" @input="emitData()"></textarea></li>
+        <textarea class="form-control" style="height: 100px" v-model="data.instructions" @input="emitData()"></textarea>
         <label>Instructions</label>
       </div>
       <section class="mb-2">
@@ -122,6 +122,7 @@ Vue.component("experiment-form", {
         id: uuidv4(),
         label: `practice-task`,
         data: {},
+        instructionsAfter: "",
       };
       this.emitData();
     },
@@ -137,6 +138,7 @@ Vue.component("experiment-form", {
         key: this.taskKeyCounter,
         label: `task-${this.taskKeyCounter}`,
         data: {},
+        instructionsAfter: "",
       });
       this.taskKeyCounter++;
       this.emitData();
@@ -182,7 +184,11 @@ Vue.component("task", {
         <input type="text" class="form-control" v-model="task.label" @input="emitData()">
         <label>Label</label>
       </div>
-      <json-editor v-model="task.data" @input="emitData()"></json-editor>
+      <json-editor class="mb-2" v-model="task.data" @input="emitData()"></json-editor>
+      <div class="form-floating">
+        <textarea class="form-control" style="height: 100px" v-model="task.instructionsAfter" @input="emitData()"></textarea>
+        <label>Instructions after task</label>
+      </div>
     </div>
   `,
 
