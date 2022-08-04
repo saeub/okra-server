@@ -5,9 +5,9 @@ from django.urls import include, path
 from okra_server import views
 
 
-def superuser_required(function=None):
+def staff_required(function=None):
     actual_decorator = user_passes_test(
-        lambda u: u.is_superuser,
+        lambda u: u.is_staff,
     )
     if function:
         return actual_decorator(function)
@@ -26,22 +26,22 @@ urlpatterns = [
     ),
     path(
         "experiments",
-        superuser_required(views.ExperimentList.as_view()),
+        staff_required(views.ExperimentList.as_view()),
         name="experiment-list",
     ),
     path(
         "experiments/new",
-        superuser_required(views.ExperimentDetail.as_view()),
+        staff_required(views.ExperimentDetail.as_view()),
         name="experiment-new",
     ),
     path(
         "experiments/<uuid:experiment_id>",
-        superuser_required(views.ExperimentDetail.as_view()),
+        staff_required(views.ExperimentDetail.as_view()),
         name="experiment-detail",
     ),
     path(
         "experiments/<uuid:experiment_id>/results",
-        superuser_required(views.experiment_results),
+        staff_required(views.experiment_results),
         name="experiment-results",
     ),
     path(
@@ -51,7 +51,7 @@ urlpatterns = [
     ),
     path(
         "participants/new",
-        superuser_required(views.new_participant),
+        staff_required(views.new_participant),
         name="participant-new",
     ),
     path("api/", include("okra_server.api.urls")),

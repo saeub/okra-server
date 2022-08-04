@@ -34,3 +34,10 @@ def authenticated_client(client):
     user = User.objects.create(username="testuser")
     client.force_login(user)
     return client
+
+
+@pytest.fixture
+def staff_authenticated_client(client):
+    user = User.objects.create(username="staffuser", is_staff=True)
+    client.force_login(user)
+    return client
