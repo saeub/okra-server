@@ -141,6 +141,7 @@ class Task(models.Model):
         related_name="tasks",
     )
     data = models.JSONField(null=True)
+    instructions_after = models.TextField(null=True)
 
     def __str__(self):
         if self.experiment is None:

@@ -98,6 +98,7 @@ def _serialize_task(task: models.Task) -> dict:
     return {
         "id": task.id,
         "data": task.data,
+        "instructionsAfter": task.instructions_after,
     }
 
 
