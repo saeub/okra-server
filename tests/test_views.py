@@ -29,7 +29,9 @@ def experiments(registered_participant):
         instructions="Read the text and answer the questions.",
     )
     t2 = models.Task.objects.create(
-        experiment=e2, data={}, instructions_after="You've completed the task."
+        experiment=e2,
+        data={},
+        instructions_after="You've completed the task.",
     )
     models.TaskAssignment.objects.create(
         participant=registered_participant,
