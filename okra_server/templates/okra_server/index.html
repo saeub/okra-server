@@ -30,16 +30,19 @@
                                     <div class="col-auto text-center">
                                         <small>Practice</small>
                                         <br>
-                                        <strong>{{ participant.n_practice_tasks_started }}</strong>
+                                        <strong>{{ participant.n_practice_tasks_finished }}</strong>
                                     </div>
                                     <div class="col">
                                         <small>Tasks</small>
                                         <div class="progress" style="height: 20px">
                                             <div class="progress-bar bg-success" style="width: {{ participant.percent_tasks_finished }}%">
-                                                finished
+                                                {{ participant.n_tasks_finished }} finished
+                                            </div>
+                                            <div class="progress-bar bg-danger" style="width: {{ participant.percent_tasks_canceled }}%">
+                                                {{ participant.n_tasks_canceled }} canceled
                                             </div>
                                             <div class="progress-bar bg-warning" style="width: {{ participant.percent_tasks_unfinished }}%">
-                                                unfinished
+                                                {{ participant.n_tasks_unfinished }} unfinished
                                             </div>
                                         </div>
                                     </div>

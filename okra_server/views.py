@@ -15,47 +15,49 @@ from okra_server import models
 
 def index(request):
     participants = models.Participant.objects.all()
+    experiments_data = []
+    for experiment in models.Experiment.objects.all():
+        participants_data = []
+        for participant in participants:
+            n_tasks = experiment.get_n_tasks(participant)
+            n_tasks_unfinished = experiment.get_n_tasks_done(
+                participant, finished=False, canceled=False
+            )
+            n_tasks_finished = experiment.get_n_tasks_done(
+                participant, finished=True, canceled=False
+            )
+            n_tasks_canceled = experiment.get_n_tasks_done(
+                participant, finished=True, canceled=True
+            )
+            participants_data.append(
+                {
+                    "id": str(participant.id),
+                    "n_practice_tasks_finished": experiment.get_n_tasks_done(
+                        participant, practice=True, finished=True, canceled=False
+                    ),
+                    "n_tasks": n_tasks,
+                    "n_tasks_unfinished": n_tasks_unfinished,
+                    "percent_tasks_unfinished": n_tasks_unfinished
+                    / (n_tasks or 1)
+                    * 100,
+                    "n_tasks_finished": n_tasks_finished,
+                    "percent_tasks_finished": n_tasks_finished / (n_tasks or 1) * 100,
+                    "n_tasks_canceled": n_tasks_canceled,
+                    "percent_tasks_canceled": n_tasks_canceled / (n_tasks or 1) * 100,
+                }
+            )
+        experiments_data.append(
+            {
+                "id": str(experiment.id),
+                "title": experiment.title,
+                "task_type": dict(models.TaskType.choices)[experiment.task_type],
+                "participants": participants_data,
+            }
+        )
     return render(
         request,
         "okra_server/index.html",
-        {
-            "experiments": [
-                {
-                    "id": str(experiment.id),
-                    "title": experiment.title,
-                    "task_type": dict(models.TaskType.choices)[experiment.task_type],
-                    "participants": [
-                        {
-                            "id": str(participant.id),
-                            "n_practice_tasks_started": experiment.get_n_tasks_done(
-                                participant,
-                                practice=True,
-                            ),
-                            "n_tasks": experiment.get_n_tasks(participant),
-                            "n_tasks_started": experiment.get_n_tasks_done(participant),
-                            "n_tasks_finished": experiment.get_n_tasks_done(
-                                participant, finished=True
-                            ),
-                            "percent_tasks_finished": experiment.get_n_tasks_done(
-                                participant, finished=True
-                            )
-                            / (experiment.get_n_tasks(participant) or 1)
-                            * 100,
-                            "percent_tasks_unfinished": (
-                                experiment.get_n_tasks_done(participant)
-                                - experiment.get_n_tasks_done(
-                                    participant, finished=True
-                                )
-                            )
-                            / (experiment.get_n_tasks(participant) or 1)
-                            * 100,
-                        }
-                        for participant in participants
-                    ],
-                }
-                for experiment in models.Experiment.objects.all()
-            ]
-        },
+        {"experiments": experiments_data},
     )
 
 
