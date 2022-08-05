@@ -44,30 +44,36 @@ def test_participant_register(unregistered_participant):
 
 def test_task_start_finish(registered_participant, experiment):
     assert experiment.get_n_tasks(registered_participant) == 2
-    assert experiment.get_n_tasks_done(registered_participant) == 0
-    assert experiment.get_n_tasks_done(registered_participant, finished=True) == 0
-    assert experiment.get_n_tasks_done(registered_participant, practice=True) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 0
+    assert experiment.get_n_tasks(registered_participant, finished=True) == 0
+    assert (
+        experiment.get_n_tasks(registered_participant, practice=True, started=True) == 0
+    )
 
     task1 = experiment.start_task(registered_participant)
-    assert experiment.get_n_tasks_done(registered_participant) == 1
-    assert experiment.get_n_tasks_done(registered_participant, finished=True) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 1
+    assert experiment.get_n_tasks(registered_participant, finished=True) == 0
     task1.finish(registered_participant, {})
 
     assert experiment.get_n_tasks(registered_participant) == 2
-    assert experiment.get_n_tasks_done(registered_participant) == 1
-    assert experiment.get_n_tasks_done(registered_participant, finished=True) == 1
-    assert experiment.get_n_tasks_done(registered_participant, practice=True) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 1
+    assert experiment.get_n_tasks(registered_participant, finished=True) == 1
+    assert (
+        experiment.get_n_tasks(registered_participant, practice=True, started=True) == 0
+    )
 
     task2 = experiment.start_task(registered_participant)
     assert task2 != task1
-    assert experiment.get_n_tasks_done(registered_participant) == 2
-    assert experiment.get_n_tasks_done(registered_participant, finished=True) == 1
+    assert experiment.get_n_tasks(registered_participant, started=True) == 2
+    assert experiment.get_n_tasks(registered_participant, finished=True) == 1
     task2.finish(registered_participant, {})
 
     assert experiment.get_n_tasks(registered_participant) == 2
-    assert experiment.get_n_tasks_done(registered_participant) == 2
-    assert experiment.get_n_tasks_done(registered_participant, finished=True) == 2
-    assert experiment.get_n_tasks_done(registered_participant, practice=True) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 2
+    assert experiment.get_n_tasks(registered_participant, finished=True) == 2
+    assert (
+        experiment.get_n_tasks(registered_participant, practice=True, started=True) == 0
+    )
 
     with pytest.raises(NoTasksAvailable):
         experiment.start_task(registered_participant)
@@ -75,86 +81,84 @@ def test_task_start_finish(registered_participant, experiment):
 
 def test_practice_task_start_finish(registered_participant, experiment):
     assert experiment.get_n_tasks(registered_participant) == 2
-    assert experiment.get_n_tasks_done(registered_participant) == 0
-    assert experiment.get_n_tasks_done(registered_participant, practice=True) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 0
+    assert experiment.get_n_tasks(registered_participant, practice=True) == 0
     assert (
-        experiment.get_n_tasks_done(
-            registered_participant, practice=True, finished=True
-        )
+        experiment.get_n_tasks(registered_participant, practice=True, finished=True)
         == 0
     )
 
     practice_task = experiment.start_task(registered_participant, practice=True)
     assert practice_task.data == {"practice": "task"}
-    assert experiment.get_n_tasks_done(registered_participant, practice=True) == 1
     assert (
-        experiment.get_n_tasks_done(
-            registered_participant, practice=True, finished=True
-        )
+        experiment.get_n_tasks(registered_participant, practice=True, started=True) == 1
+    )
+    assert (
+        experiment.get_n_tasks(registered_participant, practice=True, finished=True)
         == 0
     )
     practice_task.finish(registered_participant, {})
 
     assert experiment.get_n_tasks(registered_participant) == 2
-    assert experiment.get_n_tasks_done(registered_participant) == 0
-    assert experiment.get_n_tasks_done(registered_participant, practice=True) == 1
+    assert experiment.get_n_tasks(registered_participant, started=True) == 0
     assert (
-        experiment.get_n_tasks_done(
-            registered_participant, practice=True, finished=True
-        )
+        experiment.get_n_tasks(registered_participant, practice=True, started=True) == 1
+    )
+    assert (
+        experiment.get_n_tasks(registered_participant, practice=True, finished=True)
         == 1
     )
 
     practice_task = experiment.start_task(registered_participant, practice=True)
     assert practice_task.data == {"practice": "task"}
-    assert experiment.get_n_tasks_done(registered_participant, practice=True) == 2
     assert (
-        experiment.get_n_tasks_done(
-            registered_participant, practice=True, finished=True
-        )
+        experiment.get_n_tasks(registered_participant, practice=True, started=True) == 2
+    )
+    assert (
+        experiment.get_n_tasks(registered_participant, practice=True, finished=True)
         == 1
     )
     practice_task.finish(registered_participant, {})
 
     assert experiment.get_n_tasks(registered_participant) == 2
-    assert experiment.get_n_tasks_done(registered_participant) == 0
-    assert experiment.get_n_tasks_done(registered_participant, practice=True) == 2
+    assert experiment.get_n_tasks(registered_participant, started=True) == 0
     assert (
-        experiment.get_n_tasks_done(
-            registered_participant, practice=True, finished=True
-        )
+        experiment.get_n_tasks(registered_participant, practice=True, started=True) == 2
+    )
+    assert (
+        experiment.get_n_tasks(registered_participant, practice=True, finished=True)
         == 2
     )
 
 
 def test_task_start_cancel(registered_participant, experiment):
     assert experiment.get_n_tasks(registered_participant) == 2
-    assert experiment.get_n_tasks_done(registered_participant) == 0
-    assert experiment.get_n_tasks_done(registered_participant, finished=True) == 0
-    assert experiment.get_n_tasks_done(registered_participant, canceled=True) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 0
+    assert experiment.get_n_tasks(registered_participant, finished=True) == 0
+    assert experiment.get_n_tasks(registered_participant, canceled=True) == 0
 
     task1 = experiment.start_task(registered_participant)
-    assert experiment.get_n_tasks_done(registered_participant) == 1
-    assert experiment.get_n_tasks_done(registered_participant, finished=True) == 0
-    assert experiment.get_n_tasks_done(registered_participant, canceled=True) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 1
+    assert experiment.get_n_tasks(registered_participant, finished=True) == 0
+    assert experiment.get_n_tasks(registered_participant, canceled=True) == 0
     task1.cancel(registered_participant)
 
     assert experiment.get_n_tasks(registered_participant) == 2
-    assert experiment.get_n_tasks_done(registered_participant) == 1
-    assert experiment.get_n_tasks_done(registered_participant, finished=True) == 1
-    assert experiment.get_n_tasks_done(registered_participant, canceled=True) == 1
+    assert experiment.get_n_tasks(registered_participant, started=True) == 1
+    assert experiment.get_n_tasks(registered_participant, finished=True) == 1
+    assert experiment.get_n_tasks(registered_participant, canceled=True) == 1
 
     task2 = experiment.start_task(registered_participant)
     assert task2 != task1
-    assert experiment.get_n_tasks_done(registered_participant) == 2
-    assert experiment.get_n_tasks_done(registered_participant, finished=True) == 1
-    assert experiment.get_n_tasks_done(registered_participant, canceled=True) == 1
+    assert experiment.get_n_tasks(registered_participant, started=True) == 2
+    assert experiment.get_n_tasks(registered_participant, finished=True) == 1
+    assert experiment.get_n_tasks(registered_participant, canceled=True) == 1
     task2.cancel(registered_participant)
 
     assert experiment.get_n_tasks(registered_participant) == 2
-    assert experiment.get_n_tasks_done(registered_participant) == 2
-    assert experiment.get_n_tasks_done(registered_participant, finished=True) == 2
-    assert experiment.get_n_tasks_done(registered_participant, canceled=True) == 2
+    assert experiment.get_n_tasks(registered_participant, started=True) == 2
+    assert experiment.get_n_tasks(registered_participant, finished=True) == 2
+    assert experiment.get_n_tasks(registered_participant, canceled=True) == 2
 
     with pytest.raises(NoTasksAvailable):
         experiment.start_task(registered_participant)
@@ -162,22 +166,22 @@ def test_task_start_cancel(registered_participant, experiment):
 
 def test_task_start_start(registered_participant, experiment):
     assert experiment.get_n_tasks(registered_participant) == 2
-    assert experiment.get_n_tasks_done(registered_participant) == 0
-    assert experiment.get_n_tasks_done(registered_participant, finished=True) == 0
-    assert experiment.get_n_tasks_done(registered_participant, canceled=True) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 0
+    assert experiment.get_n_tasks(registered_participant, finished=True) == 0
+    assert experiment.get_n_tasks(registered_participant, canceled=True) == 0
 
     task1 = experiment.start_task(registered_participant)
-    assert experiment.get_n_tasks_done(registered_participant) == 1
-    assert experiment.get_n_tasks_done(registered_participant, finished=True) == 0
-    assert experiment.get_n_tasks_done(registered_participant, canceled=True) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 1
+    assert experiment.get_n_tasks(registered_participant, finished=True) == 0
+    assert experiment.get_n_tasks(registered_participant, canceled=True) == 0
 
     task2 = experiment.start_task(registered_participant)
     assert task2 != task1
     assert experiment.get_n_tasks(registered_participant) == 2
-    assert experiment.get_n_tasks_done(registered_participant) == 2
+    assert experiment.get_n_tasks(registered_participant, started=True) == 2
     # Should cancel unfinished task1
-    assert experiment.get_n_tasks_done(registered_participant, finished=True) == 1
-    assert experiment.get_n_tasks_done(registered_participant, canceled=True) == 1
+    assert experiment.get_n_tasks(registered_participant, finished=True) == 1
+    assert experiment.get_n_tasks(registered_participant, canceled=True) == 1
 
     with pytest.raises(NoTasksAvailable):
         experiment.start_task(registered_participant)

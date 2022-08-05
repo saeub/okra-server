@@ -75,7 +75,7 @@ def test_experiments(client, registered_participant, experiment):
 def test_start_finish_task(client, registered_participant, experiment):
     assignment = registered_participant.assignments.get()
     assert assignment.started_time is None
-    assert experiment.get_n_tasks_done(registered_participant) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 0
 
     response = client.post(
         f"/api/experiments/{experiment.id}/start",
@@ -91,7 +91,7 @@ def test_start_finish_task(client, registered_participant, experiment):
     assert assignment.started_time is not None
     assert assignment.finished_time is None
     assert assignment.results is None
-    assert experiment.get_n_tasks_done(registered_participant) == 1
+    assert experiment.get_n_tasks(registered_participant, started=True) == 1
 
     results = {
         "data": {"dummy_key": "dummy_value"},
@@ -109,13 +109,13 @@ def test_start_finish_task(client, registered_participant, experiment):
     assert assignment.started_time is not None
     assert assignment.finished_time is not None
     assert assignment.results == results
-    assert experiment.get_n_tasks_done(registered_participant) == 1
+    assert experiment.get_n_tasks(registered_participant, started=True) == 1
 
 
 def test_start_restart_task(client, registered_participant, experiment):
     assignment = registered_participant.assignments.get()
     assert assignment.started_time is None
-    assert experiment.get_n_tasks_done(registered_participant) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 0
 
     response = client.post(
         f"/api/experiments/{experiment.id}/start",
@@ -131,7 +131,7 @@ def test_start_restart_task(client, registered_participant, experiment):
     assert assignment.started_time is not None
     assert assignment.finished_time is None
     assert assignment.results is None
-    assert experiment.get_n_tasks_done(registered_participant) == 1
+    assert experiment.get_n_tasks(registered_participant, started=True) == 1
 
     # Start next task without finishing
     response = client.post(
@@ -146,7 +146,7 @@ def test_start_restart_task(client, registered_participant, experiment):
     assert assignment.started_time is not None
     assert assignment.finished_time is not None
     assert assignment.results is None
-    assert experiment.get_n_tasks_done(registered_participant) == 1
+    assert experiment.get_n_tasks(registered_participant, started=True) == 1
 
 
 def test_start_finish_practice_task(client, registered_participant, experiment):
@@ -154,7 +154,7 @@ def test_start_finish_practice_task(client, registered_participant, experiment):
         registered_participant.assignments.get(
             task=experiment.practice_task, finished_time=None
         )
-    assert experiment.get_n_tasks_done(registered_participant) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 0
 
     response = client.post(
         f"/api/experiments/{experiment.id}/start?practice=true",
@@ -177,7 +177,7 @@ def test_start_finish_practice_task(client, registered_participant, experiment):
     assert assignment.started_time is not None
     assert assignment.finished_time is None
     assert assignment.results is None
-    assert experiment.get_n_tasks_done(registered_participant) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 0
 
     results = {
         "data": {"dummy_key": "dummy_value"},
@@ -195,7 +195,7 @@ def test_start_finish_practice_task(client, registered_participant, experiment):
     assert assignment.started_time is not None
     assert assignment.finished_time is not None
     assert assignment.results == results
-    assert experiment.get_n_tasks_done(registered_participant) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 0
 
 
 def test_start_restart_finish_practice_task(client, registered_participant, experiment):
@@ -203,7 +203,7 @@ def test_start_restart_finish_practice_task(client, registered_participant, expe
         registered_participant.assignments.get(
             task=experiment.practice_task, finished_time=None
         )
-    assert experiment.get_n_tasks_done(registered_participant) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 0
 
     response = client.post(
         f"/api/experiments/{experiment.id}/start?practice=true",
@@ -231,7 +231,7 @@ def test_start_restart_finish_practice_task(client, registered_participant, expe
     assert assignment.started_time is not None
     assert assignment.finished_time is None
     assert assignment.results is None
-    assert experiment.get_n_tasks_done(registered_participant) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 0
 
     # Restart practice task without finishing
     response = client.post(
@@ -264,7 +264,7 @@ def test_start_restart_finish_practice_task(client, registered_participant, expe
     assert assignment.started_time is not None
     assert assignment.finished_time is None
     assert assignment.results is None
-    assert experiment.get_n_tasks_done(registered_participant) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 0
 
     results = {
         "data": {"dummy_key": "dummy_value"},
@@ -282,4 +282,4 @@ def test_start_restart_finish_practice_task(client, registered_participant, expe
     assert assignment.started_time is not None
     assert assignment.finished_time is not None
     assert assignment.results == results
-    assert experiment.get_n_tasks_done(registered_participant) == 0
+    assert experiment.get_n_tasks(registered_participant, started=True) == 0

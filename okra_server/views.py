@@ -20,19 +20,19 @@ def index(request):
         participants_data = []
         for participant in participants:
             n_tasks = experiment.get_n_tasks(participant)
-            n_tasks_unfinished = experiment.get_n_tasks_done(
-                participant, finished=False, canceled=False
+            n_tasks_unfinished = experiment.get_n_tasks(
+                participant, started=True, finished=False, canceled=False
             )
-            n_tasks_finished = experiment.get_n_tasks_done(
-                participant, finished=True, canceled=False
+            n_tasks_finished = experiment.get_n_tasks(
+                participant, started=True, finished=True, canceled=False
             )
-            n_tasks_canceled = experiment.get_n_tasks_done(
-                participant, finished=True, canceled=True
+            n_tasks_canceled = experiment.get_n_tasks(
+                participant, started=True, finished=True, canceled=True
             )
             participants_data.append(
                 {
                     "id": str(participant.id),
-                    "n_practice_tasks_finished": experiment.get_n_tasks_done(
+                    "n_practice_tasks_finished": experiment.get_n_tasks(
                         participant, practice=True, finished=True, canceled=False
                     ),
                     "n_tasks": n_tasks,

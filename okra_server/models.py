@@ -92,19 +92,18 @@ class Experiment(models.Model):
             )
         return assignments
 
-    def get_n_tasks(self, participant: Participant) -> int:
-        return self.get_assignments(participant).count()
-
-    def get_n_tasks_done(
+    def get_n_tasks(
         self,
         participant: Participant,
         practice: bool = False,
+        started: Optional[bool] = None,
         finished: Optional[bool] = None,
         canceled: Optional[bool] = None,
     ) -> int:
-        assignments = self.get_assignments(participant, practice=practice).filter(
-            started_time__isnull=False,
-        )
+        assignments = self.get_assignments(participant, practice=practice)
+
+        if started is not None:
+            assignments = assignments.filter(started_time__isnull=False)
         if finished is not None:
             assignments = assignments.filter(finished_time__isnull=not finished)
         if canceled is not None:
