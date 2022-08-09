@@ -42,6 +42,11 @@ urlpatterns = [
         name="experiment-results",
     ),
     path(
+        "experiments/<uuid:experiment_id>/delete",
+        staff_required(views.delete_experiment),
+        name="experiment-delete",
+    ),
+    path(
         "participants",
         login_required(views.ParticipantList.as_view()),
         name="participant-list",
@@ -50,6 +55,16 @@ urlpatterns = [
         "participants/new",
         staff_required(views.new_participant),
         name="participant-new",
+    ),
+    path(
+        "participants/<uuid:participant_id>/unregister",
+        staff_required(views.unregister_participant),
+        name="participant-unregister",
+    ),
+    path(
+        "participants/<uuid:participant_id>/delete",
+        staff_required(views.delete_participant),
+        name="participant-delete",
     ),
     path("api/", include("okra_server.api.urls")),
 ]

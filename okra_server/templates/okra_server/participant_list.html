@@ -6,17 +6,35 @@
     <h1>Participants</h1>
     <div class="list-group mb-2">
         {% for participant in participant_list %}
-            <a class="list-group-item" href="{% url 'registration-detail' participant.id %}">
-                <b>{{ participant.id }}</b>
-                {% if participant.device_key %}
-                    (registered)
-                {% else %}
-                    (unregistered)
-                {% endif %}
-            </a>
+            <div class="list-group-item">
+                <div class="row">
+                    <div class="col">
+                        <a href="{% url 'registration-detail' participant.id %}">
+                            <b>{{ participant.id }}</b>
+                            {% if participant.device_key %}
+                                (registered)
+                            {% else %}
+                                (unregistered)
+                            {% endif %}
+                        </a>
+                    </div>
+                    {% if user.is_staff %}
+                        <div class="col-auto">
+                            {% if participant.device_key %}
+                                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#unregister-modal" data-bs-participant="{{ participant.id }}">
+                                    Unregister
+                                </button>
+                            {% endif %}
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#delete-modal" data-bs-participant="{{ participant.id }}">
+                                Delete
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         {% endfor %}
     </div>
-    {% if user.is_superuser %}
+    {% if user.is_staff %}
         <form action="{% url 'participant-new' %}" method="POST">
             {% csrf_token %}
             <button type="submit" class="btn btn-primary">
@@ -24,5 +42,66 @@
                 New participant
             </button>
         </form>
+
+        <div class="modal fade" id="unregister-modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Unregister participant</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>
+                            Do you really want to unregister participant <b class="modal-participant-id"></b>?
+                            The participant will receive a new registration key and will be able to re-register using a new QR code.
+                        </p>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                Yes, unregister
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="delete-modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete participant</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>
+                            Do you really want to delete participant <b class="modal-participant-id"></b>?
+                            This action cannot be undone.
+                        </p>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                Yes, delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            var unregisterModal = document.getElementById("unregister-modal");
+            unregisterModal.addEventListener("show.bs.modal", function(event) {
+                var participant = event.relatedTarget.getAttribute("data-bs-participant");
+                unregisterModal.querySelector(".modal-body .modal-participant-id").textContent = participant;
+                unregisterModal.querySelector(".modal-body form").setAttribute("action", "{% url 'participant-unregister' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", participant));
+            });
+
+            var deleteModal = document.getElementById("delete-modal");
+            deleteModal.addEventListener("show.bs.modal", function(event) {
+                var participant = event.relatedTarget.getAttribute("data-bs-participant");
+                deleteModal.querySelector(".modal-body .modal-participant-id").textContent = participant;
+                deleteModal.querySelector(".modal-body form").setAttribute("action", "{% url 'participant-delete' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", participant));
+            });
+        </script>
     {% endif %}
 {% endblock content %}

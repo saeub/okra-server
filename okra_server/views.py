@@ -294,6 +294,13 @@ def experiment_results(request, experiment_id):
     return response
 
 
+@require_POST
+def delete_experiment(request, experiment_id):
+    experiment = models.Experiment.objects.get(id=experiment_id)
+    experiment.delete()
+    return redirect("experiment-list")
+
+
 class ParticipantList(ListView):
     model = models.Participant
 
@@ -301,6 +308,21 @@ class ParticipantList(ListView):
 @require_POST
 def new_participant(request):
     models.Participant.objects.create()
+    return redirect("participant-list")
+
+
+@require_POST
+def unregister_participant(request, participant_id):
+    participant = models.Participant.objects.get(id=participant_id)
+    participant.unregister()
+    participant.save()
+    return redirect("participant-list")
+
+
+@require_POST
+def delete_participant(request, participant_id):
+    participant = models.Participant.objects.get(id=participant_id)
+    participant.delete()
     return redirect("participant-list")
 
 
