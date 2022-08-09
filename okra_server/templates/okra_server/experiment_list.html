@@ -6,13 +6,56 @@
     <h1>Experiments</h1>
     <div class="list-group mb-2">
         {% for experiment in experiment_list %}
-            <a class="list-group-item" href="{% url 'experiment-detail' experiment.id %}">
-                <b>{{ experiment.title }}</b> ({{ experiment.id }})
-            </a>
+            <div class="list-group-item">
+                <div class="row">
+                    <div class="col">
+                        <a href="{% url 'experiment-detail' experiment.id %}">
+                            <b>{{ experiment.title }}</b> ({{ experiment.id }})
+                        </a>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#delete-modal" data-bs-experiment="{{ experiment.id }}">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
         {% endfor %}
     </div>
     <a class="btn btn-primary" href="{% url 'experiment-new' %}">
         <i class="bi bi-plus me-2"></i>
         New experiment
     </a>
+
+    <div class="modal fade" id="delete-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete experiment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        Do you really want to delete experiment <b class="modal-experiment-id"></b>?
+                        This action cannot be undone.
+                    </p>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            Yes, delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var deleteModal = document.getElementById("delete-modal");
+        deleteModal.addEventListener("show.bs.modal", function(event) {
+            var experiment = event.relatedTarget.getAttribute("data-bs-experiment");
+            deleteModal.querySelector(".modal-body .modal-experiment-id").textContent = experiment;
+            deleteModal.querySelector(".modal-body form").setAttribute("action", "{% url 'experiment-delete' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", experiment));
+        });
+    </script>
 {% endblock content %}

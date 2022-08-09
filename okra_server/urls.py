@@ -1,13 +1,20 @@
 from django.contrib import admin
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.urls import include, path
 
 from okra_server import views
 
+
+def staff_required(function):
+    return user_passes_test(
+        lambda u: u.is_staff,
+    )(function)
+
+
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("login", admin.site.login, name="login"),
-    path("logout", admin.site.logout, name="logout"),
+    path("login", views.Login.as_view(), name="login"),
+    path("logout", views.logout, name="logout"),
     path("", views.index),
     path(
         "registration/<participant_id>",
@@ -16,18 +23,28 @@ urlpatterns = [
     ),
     path(
         "experiments",
-        login_required(views.ExperimentList.as_view()),
+        staff_required(views.ExperimentList.as_view()),
         name="experiment-list",
     ),
     path(
         "experiments/new",
-        login_required(views.ExperimentDetail.as_view()),
+        staff_required(views.ExperimentDetail.as_view()),
         name="experiment-new",
     ),
     path(
         "experiments/<uuid:experiment_id>",
-        login_required(views.ExperimentDetail.as_view()),
+        staff_required(views.ExperimentDetail.as_view()),
         name="experiment-detail",
+    ),
+    path(
+        "experiments/<uuid:experiment_id>/results",
+        staff_required(views.experiment_results),
+        name="experiment-results",
+    ),
+    path(
+        "experiments/<uuid:experiment_id>/delete",
+        staff_required(views.delete_experiment),
+        name="experiment-delete",
     ),
     path(
         "participants",
@@ -36,8 +53,18 @@ urlpatterns = [
     ),
     path(
         "participants/new",
-        login_required(views.new_participant),
+        staff_required(views.new_participant),
         name="participant-new",
+    ),
+    path(
+        "participants/<uuid:participant_id>/unregister",
+        staff_required(views.unregister_participant),
+        name="participant-unregister",
+    ),
+    path(
+        "participants/<uuid:participant_id>/delete",
+        staff_required(views.delete_participant),
+        name="participant-delete",
     ),
     path("api/", include("okra_server.api.urls")),
 ]

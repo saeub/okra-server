@@ -1,0 +1,16 @@
+{% extends 'okra_server/base.html' %}
+
+{% block title %}Log in{% endblock title %}
+
+{% block content %}
+    <h1>Log in</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <input class="form-control mb-2" type="text" name="username" placeholder="Username" value="{{ username }}">
+        <input class="form-control mb-2" type="password" name="password" placeholder="Password">
+        <button class="btn btn-primary" type="submit">Log in</button>
+    </form>
+    {% if failed %}
+        <div class="invalid-feedback">Incorrect username or password</div>
+    {% endif %}
+{% endblock content %}

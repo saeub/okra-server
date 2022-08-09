@@ -77,31 +77,37 @@ class Experiment(models.Model):
     def __str__(self):
         return f'Experiment "{self.title}" ({self.task_type})'
 
-    def get_assignments(self, participant: Participant) -> Iterable["TaskAssignment"]:
-        return TaskAssignment.objects.filter(
-            task__in=self.tasks.all(),
-            participant=participant,
-        )
-
-    def get_n_tasks(self, participant: Participant) -> int:
-        return self.get_assignments(participant).count()
-
-    def get_n_tasks_done(
-        self, participant: Participant, practice: bool = False, finished: bool = False
-    ) -> int:
+    def get_assignments(
+        self, participant: Participant, practice: bool = False
+    ) -> Iterable["TaskAssignment"]:
         if practice:
             assignments = TaskAssignment.objects.filter(
                 task=self.practice_task,
                 participant=participant,
-                started_time__isnull=False,
             )
         else:
-            assignments = self.get_assignments(participant).filter(
-                started_time__isnull=False,
+            assignments = TaskAssignment.objects.filter(
+                task__in=self.tasks.all(),
+                participant=participant,
             )
+        return assignments
 
-        if finished:
-            assignments = assignments.filter(finished_time__isnull=False)
+    def get_n_tasks(
+        self,
+        participant: Participant,
+        practice: bool = False,
+        started: Optional[bool] = None,
+        finished: Optional[bool] = None,
+        canceled: Optional[bool] = None,
+    ) -> int:
+        assignments = self.get_assignments(participant, practice=practice)
+
+        if started is not None:
+            assignments = assignments.filter(started_time__isnull=False)
+        if finished is not None:
+            assignments = assignments.filter(finished_time__isnull=not finished)
+        if canceled is not None:
+            assignments = assignments.filter(canceled=canceled)
 
         return assignments.count()
 
@@ -113,7 +119,7 @@ class Experiment(models.Model):
             finished_time__isnull=True,
         )
         for assignment in canceled_assignments:
-            assignment.finish(None)
+            assignment.cancel()
         if practice:
             assignment = TaskAssignment.objects.create(
                 participant=participant,
@@ -154,6 +160,12 @@ class Task(models.Model):
             finished_time__isnull=True,
         ).finish(results)
 
+    def cancel(self, participant: Participant):
+        self.assignments.get(
+            participant=participant,
+            finished_time__isnull=True,
+        ).cancel()
+
 
 class TaskAssignment(models.Model):
     id = models.AutoField(primary_key=True)
@@ -170,6 +182,7 @@ class TaskAssignment(models.Model):
     results = models.JSONField(null=True)
     started_time = models.DateTimeField(null=True)
     finished_time = models.DateTimeField(null=True)
+    canceled = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["id"]
@@ -181,6 +194,11 @@ class TaskAssignment(models.Model):
     def finish(self, results: dict):
         self.results = results
         self.finished_time = timezone.now()
+        self.save()
+
+    def cancel(self):
+        self.finished_time = timezone.now()
+        self.canceled = True
         self.save()
 
     def __str__(self):

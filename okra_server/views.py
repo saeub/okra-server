@@ -4,7 +4,7 @@ import json
 import uuid
 
 import qrcode
-from django.http.request import HttpRequest
+from django.contrib import auth
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render, reverse
 from django.views.decorators.http import require_POST
@@ -13,49 +13,51 @@ from django.views.generic import ListView, View
 from okra_server import models
 
 
-def index(request: HttpRequest):
+def index(request):
     participants = models.Participant.objects.all()
+    experiments_data = []
+    for experiment in models.Experiment.objects.all():
+        participants_data = []
+        for participant in participants:
+            n_tasks = experiment.get_n_tasks(participant)
+            n_tasks_unfinished = experiment.get_n_tasks(
+                participant, started=True, finished=False, canceled=False
+            )
+            n_tasks_finished = experiment.get_n_tasks(
+                participant, started=True, finished=True, canceled=False
+            )
+            n_tasks_canceled = experiment.get_n_tasks(
+                participant, started=True, finished=True, canceled=True
+            )
+            participants_data.append(
+                {
+                    "id": str(participant.id),
+                    "n_practice_tasks_finished": experiment.get_n_tasks(
+                        participant, practice=True, finished=True, canceled=False
+                    ),
+                    "n_tasks": n_tasks,
+                    "n_tasks_unfinished": n_tasks_unfinished,
+                    "percent_tasks_unfinished": n_tasks_unfinished
+                    / (n_tasks or 1)
+                    * 100,
+                    "n_tasks_finished": n_tasks_finished,
+                    "percent_tasks_finished": n_tasks_finished / (n_tasks or 1) * 100,
+                    "n_tasks_canceled": n_tasks_canceled,
+                    "percent_tasks_canceled": n_tasks_canceled / (n_tasks or 1) * 100,
+                }
+            )
+        experiments_data.append(
+            {
+                "id": str(experiment.id),
+                "title": experiment.title,
+                "task_type": dict(models.TaskType.choices)[experiment.task_type],
+                "participants": participants_data,
+            }
+        )
     return render(
         request,
         "okra_server/index.html",
-        {
-            "experiments": [
-                {
-                    "id": str(experiment.id),
-                    "title": experiment.title,
-                    "task_type": dict(models.TaskType.choices)[experiment.task_type],
-                    "participants": [
-                        {
-                            "id": str(participant.id),
-                            "n_practice_tasks_started": experiment.get_n_tasks_done(
-                                participant,
-                                practice=True,
-                            ),
-                            "n_tasks": experiment.get_n_tasks(participant),
-                            "n_tasks_started": experiment.get_n_tasks_done(participant),
-                            "n_tasks_finished": experiment.get_n_tasks_done(
-                                participant, finished=True
-                            ),
-                            "percent_tasks_finished": experiment.get_n_tasks_done(
-                                participant, finished=True
-                            )
-                            / (experiment.get_n_tasks(participant) or 1)
-                            * 100,
-                            "percent_tasks_unfinished": (
-                                experiment.get_n_tasks_done(participant)
-                                - experiment.get_n_tasks_done(
-                                    participant, finished=True
-                                )
-                            )
-                            / (experiment.get_n_tasks(participant) or 1)
-                            * 100,
-                        }
-                        for participant in participants
-                    ],
-                }
-                for experiment in models.Experiment.objects.all()
-            ]
-        },
+        {"experiments": experiments_data},
     )
 
 
@@ -252,6 +254,53 @@ class ExperimentDetail(View):
             return models.TaskRating(id=rating_id)
 
 
+def experiment_results(request, experiment_id):
+    download = "download" in request.GET
+    experiment = models.Experiment.objects.get(id=experiment_id)
+    results = {
+        "results": [
+            {
+                "participant": participant.id,
+                "practiceTasks": [
+                    {
+                        "task": assignment.task.id,
+                        "results": assignment.results,
+                        "started_time": assignment.started_time,
+                        "finished_time": assignment.finished_time,
+                    }
+                    for assignment in experiment.get_assignments(
+                        participant, practice=True
+                    )
+                ],
+                "tasks": [
+                    {
+                        "task": assignment.task.id,
+                        "results": assignment.results,
+                        "started_time": assignment.started_time,
+                        "finished_time": assignment.finished_time,
+                    }
+                    for assignment in experiment.get_assignments(participant)
+                ],
+            }
+            for participant in models.Participant.objects.all()
+        ],
+    }
+    response = JsonResponse(
+        results,
+        status=200,
+    )
+    if download:
+        response["Content-Disposition"] = f"attachment; filename={experiment.id}.json"
+    return response
+
+
+@require_POST
+def delete_experiment(request, experiment_id):
+    experiment = models.Experiment.objects.get(id=experiment_id)
+    experiment.delete()
+    return redirect("experiment-list")
+
+
 class ParticipantList(ListView):
     model = models.Participant
 
@@ -260,3 +309,42 @@ class ParticipantList(ListView):
 def new_participant(request):
     models.Participant.objects.create()
     return redirect("participant-list")
+
+
+@require_POST
+def unregister_participant(request, participant_id):
+    participant = models.Participant.objects.get(id=participant_id)
+    participant.unregister()
+    participant.save()
+    return redirect("participant-list")
+
+
+@require_POST
+def delete_participant(request, participant_id):
+    participant = models.Participant.objects.get(id=participant_id)
+    participant.delete()
+    return redirect("participant-list")
+
+
+class Login(View):
+    def get(self, request):
+        return render(request, "okra_server/login.html")
+
+    def post(self, request):
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user = auth.authenticate(request, username=username, password=password)
+        if user is not None:
+            auth.login(request, user)
+            return redirect(request.GET.get("next") or index)
+        else:
+            return render(
+                request,
+                "okra_server/login.html",
+                {"username": username, "failed": True},
+            )
+
+
+def logout(request):
+    auth.logout(request)
+    return redirect(request.GET.get("next") or index)

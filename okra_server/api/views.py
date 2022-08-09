@@ -88,7 +88,7 @@ def _serialize_experiment(
         "coverImageUrl": experiment.cover_image_url,
         "instructions": experiment.instructions,
         "nTasks": experiment.get_n_tasks(participant),
-        "nTasksDone": experiment.get_n_tasks_done(participant),
+        "nTasksDone": experiment.get_n_tasks(participant, started=True),
         "hasPracticeTask": experiment.practice_task is not None,
         "ratings": [_serialize_rating(rating) for rating in experiment.ratings.all()],
     }

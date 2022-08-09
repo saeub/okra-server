@@ -48,17 +48,27 @@ def experiments(registered_participant):
 @pytest.fixture
 def public_urls(unregistered_participant):
     return [
+        "/",
+        "/login",
         f"/registration/{unregistered_participant.id}",
     ]
 
 
 @pytest.fixture
-def private_urls(experiments):
+def private_urls():
+    return [
+        "/participants",
+    ]
+
+
+@pytest.fixture
+def admin_urls(experiments):
     return [
         "/experiments",
         "/experiments/new",
         f"/experiments/{experiments[0].id}",
-        "/participants",
+        f"/experiments/{experiments[0].id}/results",
+        f"/experiments/{experiments[0].id}/results?download",
     ]
 
 
@@ -77,35 +87,80 @@ def test_get_registration_detail_already_registered(
     assert "already registered" in response.content.decode()
 
 
-def test_unauthenticated(client, public_urls, private_urls):
+def test_unauthenticated(client, public_urls, private_urls, admin_urls):
     for url in public_urls:
         response = client.get(url)
-        assert client.get(url).status_code == 200, response.content
+        assert response.status_code == 200, url
     for url in private_urls:
         response = client.get(url)
-        assert response.status_code == 302, response.content
-        assert response.url == f"/login?next={url}"
+        assert response.status_code == 302, url
+        assert response.url == f"/login?next={url.replace('?', '%3F')}"
+    for url in admin_urls:
+        response = client.get(url)
+        assert response.status_code == 302, url
+        assert response.url == f"/login?next={url.replace('?', '%3F')}"
 
 
-def test_authenticated(authenticated_client, public_urls, private_urls):
+def test_authenticated(authenticated_client, public_urls, private_urls, admin_urls):
     for url in public_urls:
         response = authenticated_client.get(url)
-        assert response.status_code == 200, response.content
+        assert response.status_code == 200, url
     for url in private_urls:
         response = authenticated_client.get(url)
-        assert response.status_code == 200, response.content
+        assert response.status_code == 200, url
+    for url in admin_urls:
+        response = authenticated_client.get(url)
+        assert response.status_code == 302, url
+        assert response.url == f"/login?next={url.replace('?', '%3F')}"
 
 
-def test_get_experiment_list(authenticated_client, experiments):
-    response = authenticated_client.get("/experiments")
+def test_authenticated_staff(
+    staff_authenticated_client, public_urls, private_urls, admin_urls
+):
+    for url in public_urls:
+        response = staff_authenticated_client.get(url)
+        assert response.status_code == 200, url
+    for url in private_urls:
+        response = staff_authenticated_client.get(url)
+        assert response.status_code == 200, url
+    for url in admin_urls:
+        response = staff_authenticated_client.get(url)
+        assert response.status_code == 200, url
+
+
+def test_get_index(client, experiments, registered_participant):
+    response = client.get("/")
+    assert response.status_code == 200, response.content
+    for experiment in experiments:
+        assert str(experiment.id) not in response.content.decode()
+    assert response.content.decode().count(str(registered_participant.id)) == 0
+
+
+def test_get_index_authenticated(
+    staff_authenticated_client, experiments, registered_participant
+):
+    response = staff_authenticated_client.get("/")
     assert response.status_code == 200, response.content
     for experiment in experiments:
         assert str(experiment.id) in response.content.decode()
+    assert response.content.decode().count(str(registered_participant.id)) == len(
+        experiments
+    )
 
 
-def test_get_experiment_detail(authenticated_client, experiments):
+def test_get_experiment_list(staff_authenticated_client, experiments):
+    response = staff_authenticated_client.get("/experiments")
+    assert response.status_code == 200, response.content
     for experiment in experiments:
-        response = authenticated_client.get(f"/experiments/{experiment.id}")
+        assert str(experiment.id) in response.content.decode()
+    assert response.content.decode().count('data-bs-target="#delete-modal"') == len(
+        experiments
+    )
+
+
+def test_get_experiment_detail(staff_authenticated_client, experiments):
+    for experiment in experiments:
+        response = staff_authenticated_client.get(f"/experiments/{experiment.id}")
         assert response.status_code == 200, response.content
         for task in experiment.tasks.all():
             assert escapejs(str(task.id)) in response.content.decode()
@@ -113,7 +168,7 @@ def test_get_experiment_detail(authenticated_client, experiments):
             assert escapejs(str(rating.id)) in response.content.decode()
 
 
-def test_post_experiment_detail(authenticated_client, experiments):
+def test_post_experiment_detail(staff_authenticated_client, experiments):
     for experiment in experiments:
         data = {
             "taskType": "cloze",
@@ -159,7 +214,7 @@ def test_post_experiment_detail(authenticated_client, experiments):
         }
         task_count_before = experiment.tasks.count()
         rating_count_before = experiment.ratings.count()
-        response = authenticated_client.post(
+        response = staff_authenticated_client.post(
             f"/experiments/{experiment.id}", data, content_type="application/json"
         )
         assert response.status_code == 200, response.content
@@ -189,27 +244,11 @@ def test_post_experiment_detail(authenticated_client, experiments):
             )
 
 
-def test_post_experiment_detail_delete_tasks_ratings(authenticated_client, experiments):
+def test_post_delete_experiment(staff_authenticated_client, experiments):
     for experiment in experiments:
-        data = {
-            "taskType": "cloze",
-            "title": "New title",
-            "instructions": "New instructions",
-            "practiceTask": None,
-            "tasks": [],
-            "ratings": [],
-            "assignments": [],
-        }
-        response = authenticated_client.post(
-            f"/experiments/{experiment.id}", data, content_type="application/json"
-        )
-        assert response.status_code == 200, response.content
-        experiment.refresh_from_db()
-        assert experiment.practice_task is None
-        assert experiment.tasks.count() == 0
-        assert experiment.ratings.count() == 0
-        for participant in models.Participant.objects.all():
-            assert experiment.get_assignments(participant).count() == 0
+        staff_authenticated_client.post(f"/experiments/{experiment.id}/delete")
+        with pytest.raises(models.Experiment.DoesNotExist):
+            models.Experiment.objects.get(id=experiment.id)
 
 
 def test_get_participant_list(
@@ -219,3 +258,41 @@ def test_get_participant_list(
     assert response.status_code == 200, response.content
     assert str(unregistered_participant.id) in response.content.decode()
     assert str(registered_participant.id) in response.content.decode()
+    assert response.content.decode().count("Unregister") == 0
+    assert response.content.decode().count("Delete") == 0
+
+
+def test_get_participant_list_authenticated(
+    staff_authenticated_client, unregistered_participant, registered_participant
+):
+    response = staff_authenticated_client.get("/participants")
+    assert response.status_code == 200, response.content
+    assert str(unregistered_participant.id) in response.content.decode()
+    assert str(registered_participant.id) in response.content.decode()
+    assert response.content.decode().count('data-bs-target="#unregister-modal"') == 1
+    assert response.content.decode().count('data-bs-target="#delete-modal"') == 2
+
+
+def test_post_unregister_participant(
+    staff_authenticated_client, registered_participant
+):
+    assert registered_participant.device_key is not None
+    staff_authenticated_client.post(
+        f"/participants/{registered_participant.id}/unregister"
+    )
+    registered_participant.refresh_from_db()
+    assert registered_participant.device_key is None
+
+
+def test_post_delete_participant(
+    staff_authenticated_client, unregistered_participant, registered_participant
+):
+    staff_authenticated_client.post(
+        f"/participants/{unregistered_participant.id}/delete"
+    )
+    with pytest.raises(models.Participant.DoesNotExist):
+        models.Participant.objects.get(id=unregistered_participant.id)
+
+    staff_authenticated_client.post(f"/participants/{registered_participant.id}/delete")
+    with pytest.raises(models.Participant.DoesNotExist):
+        models.Participant.objects.get(id=registered_participant.id)
