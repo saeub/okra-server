@@ -153,6 +153,9 @@ def test_get_experiment_list(staff_authenticated_client, experiments):
     assert response.status_code == 200, response.content
     for experiment in experiments:
         assert str(experiment.id) in response.content.decode()
+    assert response.content.decode().count('data-bs-target="#delete-modal"') == len(
+        experiments
+    )
 
 
 def test_get_experiment_detail(staff_authenticated_client, experiments):
@@ -241,29 +244,11 @@ def test_post_experiment_detail(staff_authenticated_client, experiments):
             )
 
 
-def test_post_experiment_detail_delete_tasks_ratings(
-    staff_authenticated_client, experiments
-):
+def test_post_delete_experiment(staff_authenticated_client, experiments):
     for experiment in experiments:
-        data = {
-            "taskType": "cloze",
-            "title": "New title",
-            "instructions": "New instructions",
-            "practiceTask": None,
-            "tasks": [],
-            "ratings": [],
-            "assignments": [],
-        }
-        response = staff_authenticated_client.post(
-            f"/experiments/{experiment.id}", data, content_type="application/json"
-        )
-        assert response.status_code == 200, response.content
-        experiment.refresh_from_db()
-        assert experiment.practice_task is None
-        assert experiment.tasks.count() == 0
-        assert experiment.ratings.count() == 0
-        for participant in models.Participant.objects.all():
-            assert experiment.get_assignments(participant).count() == 0
+        staff_authenticated_client.post(f"/experiments/{experiment.id}/delete")
+        with pytest.raises(models.Experiment.DoesNotExist):
+            models.Experiment.objects.get(id=experiment.id)
 
 
 def test_get_participant_list(
@@ -273,3 +258,41 @@ def test_get_participant_list(
     assert response.status_code == 200, response.content
     assert str(unregistered_participant.id) in response.content.decode()
     assert str(registered_participant.id) in response.content.decode()
+    assert response.content.decode().count("Unregister") == 0
+    assert response.content.decode().count("Delete") == 0
+
+
+def test_get_participant_list_authenticated(
+    staff_authenticated_client, unregistered_participant, registered_participant
+):
+    response = staff_authenticated_client.get("/participants")
+    assert response.status_code == 200, response.content
+    assert str(unregistered_participant.id) in response.content.decode()
+    assert str(registered_participant.id) in response.content.decode()
+    assert response.content.decode().count('data-bs-target="#unregister-modal"') == 1
+    assert response.content.decode().count('data-bs-target="#delete-modal"') == 2
+
+
+def test_post_unregister_participant(
+    staff_authenticated_client, registered_participant
+):
+    assert registered_participant.device_key is not None
+    staff_authenticated_client.post(
+        f"/participants/{registered_participant.id}/unregister"
+    )
+    registered_participant.refresh_from_db()
+    assert registered_participant.device_key is None
+
+
+def test_post_delete_participant(
+    staff_authenticated_client, unregistered_participant, registered_participant
+):
+    staff_authenticated_client.post(
+        f"/participants/{unregistered_participant.id}/delete"
+    )
+    with pytest.raises(models.Participant.DoesNotExist):
+        models.Participant.objects.get(id=unregistered_participant.id)
+
+    staff_authenticated_client.post(f"/participants/{registered_participant.id}/delete")
+    with pytest.raises(models.Participant.DoesNotExist):
+        models.Participant.objects.get(id=registered_participant.id)
