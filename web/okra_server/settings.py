@@ -2,21 +2,20 @@
 import os
 from pathlib import Path
 
-import django_heroku
-import dotenv
 from corsheaders.defaults import default_headers
-
-dotenv.load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "insecure_key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DJANGO_DEBUG", "false").lower() in ["true", "yes"]
+DEBUG = True
 
-ALLOWED_HOSTS = []
+if os.getenv("API_HOST"):
+    ALLOWED_HOSTS = [os.getenv("API_HOST")]
+else:
+    ALLOWED_HOSTS = []
 
 if os.getenv("APP_URL"):
     CORS_ALLOWED_ORIGINS = [
@@ -100,7 +99,7 @@ USE_TZ = True
 STATIC_URL = "/static/"
 LOGIN_URL = "/login"
 
-API_NAME = "Okra server example API"
-API_ICON_URL = "https://www.uzh.ch/favicon.ico"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
-django_heroku.settings(locals())
+API_NAME = os.getenv("API_NAME", "Development API")
+API_ICON_URL = os.getenv("API_ICON_URL")
