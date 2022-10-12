@@ -21,6 +21,8 @@ if os.getenv("APP_URL"):
     CORS_ALLOWED_ORIGINS = [
         os.getenv("APP_URL"),
     ]
+else:
+    CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "X-Participant-ID",
     "X-Device-Key",
