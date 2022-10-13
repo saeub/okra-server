@@ -4,6 +4,7 @@ import json
 import uuid
 
 import qrcode
+from django.conf import settings
 from django.contrib import auth
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render, reverse
@@ -11,6 +12,10 @@ from django.views.decorators.http import require_POST
 from django.views.generic import ListView, View
 
 from okra_server import models
+
+
+def api_info(request):
+    return {"api_info": settings.API_INFO}
 
 
 def index(request):
@@ -66,7 +71,7 @@ def registration_detail(request, participant_id):
     if participant.device_key is not None:
         return HttpResponse("already registered", status=404)
 
-    base_url = request.build_absolute_uri("/api")
+    base_url = request.build_absolute_uri(settings.API_INFO["url_prefix"] + "/api")
     data = f"{base_url}\n" f"{participant.id}\n" f"{participant.registration_key}"
     image = qrcode.make(data)
     image_bytes = io.BytesIO()

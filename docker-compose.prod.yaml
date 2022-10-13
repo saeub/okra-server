@@ -13,7 +13,8 @@ services:
       - API_NAME
       - API_ICON_URL
       - API_HOST
-      - APP_URL
+      - API_URL_PREFIX
+      - OKRA_URL
       - DJANGO_SECRET_KEY
       - POSTGRES_USER
       - POSTGRES_PASSWORD

@@ -128,8 +128,8 @@ def register(data: dict, **kwargs):
     participant.save()
     return JsonResponse(
         {
-            "name": settings.API_NAME,
-            "iconUrl": settings.API_ICON_URL,
+            "name": settings.API_INFO.NAME,
+            "iconUrl": settings.API_INFO.ICON_URL,
             "participantId": participant.id,
             "deviceKey": participant.device_key,
         }

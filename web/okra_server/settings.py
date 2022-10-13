@@ -17,9 +17,9 @@ if os.getenv("API_HOST"):
 else:
     ALLOWED_HOSTS = []
 
-if os.getenv("APP_URL"):
+if os.getenv("OKRA_URL"):
     CORS_ALLOWED_ORIGINS = [
-        os.getenv("APP_URL"),
+        os.getenv("OKRA_URL"),
     ]
 else:
     CORS_ALLOW_ALL_ORIGINS = True
@@ -63,6 +63,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "okra_server.views.api_info",
             ],
         },
     },
@@ -103,5 +104,8 @@ LOGIN_URL = "/login"
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-API_NAME = os.getenv("API_NAME", "Development API")
-API_ICON_URL = os.getenv("API_ICON_URL")
+API_INFO = {
+    "name": os.getenv("API_NAME", "Development API"),
+    "icon_url": os.getenv("API_ICON_URL"),
+    "url_prefix": os.getenv("API_URL_PREFIX", ""),
+}

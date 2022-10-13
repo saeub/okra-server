@@ -9,7 +9,7 @@
             <div class="list-group-item">
                 <div class="row">
                     <div class="col">
-                        <a href="{% url 'registration-detail' participant.id %}">
+                        <a href="{{ api_info.url_prefix }}{% url 'registration-detail' participant.id %}">
                             <b>{{ participant.id }}</b>
                             {% if participant.device_key %}
                                 (registered)
@@ -35,7 +35,7 @@
         {% endfor %}
     </div>
     {% if user.is_staff %}
-        <form action="{% url 'participant-new' %}" method="POST">
+        <form action="{{ api_info.url_prefix }}{% url 'participant-new' %}" method="POST">
             {% csrf_token %}
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-plus me-2"></i>
@@ -93,14 +93,14 @@
             unregisterModal.addEventListener("show.bs.modal", function(event) {
                 var participant = event.relatedTarget.getAttribute("data-bs-participant");
                 unregisterModal.querySelector(".modal-body .modal-participant-id").textContent = participant;
-                unregisterModal.querySelector(".modal-body form").setAttribute("action", "{% url 'participant-unregister' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", participant));
+                unregisterModal.querySelector(".modal-body form").setAttribute("action", "{{ api_info.url_prefix }}{% url 'participant-unregister' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", participant));
             });
 
             var deleteModal = document.getElementById("delete-modal");
             deleteModal.addEventListener("show.bs.modal", function(event) {
                 var participant = event.relatedTarget.getAttribute("data-bs-participant");
                 deleteModal.querySelector(".modal-body .modal-participant-id").textContent = participant;
-                deleteModal.querySelector(".modal-body form").setAttribute("action", "{% url 'participant-delete' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", participant));
+                deleteModal.querySelector(".modal-body form").setAttribute("action", "{{ api_info.url_prefix }}{% url 'participant-delete' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", participant));
             });
         </script>
     {% endif %}

@@ -1,6 +1,6 @@
 {% extends 'okra_server/base.html' %}
 
-{% block title %}okra-server{% endblock title %}
+{% block title %}{{ api_info.name }}{% endblock title %}
 
 {% block content %}
     {% if user.is_authenticated %}
@@ -14,7 +14,7 @@
                             <h6 class="card-subtitle">{{ experiment.task_type }}</h6>
                         </div>
                         <div class="col-auto">
-                            <a class="btn btn-primary" href="{% url 'experiment-results' experiment.id %}?download">
+                            <a class="btn btn-primary" href="{{ api_info.url_prefix }}{% url 'experiment-results' experiment.id %}?download">
                                 <i class="bi bi-download me-2"></i>
                                 Results
                             </a>

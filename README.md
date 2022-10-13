@@ -50,5 +50,9 @@ If you are using Visual Studio Code, you can use the [Dev Containers extension](
   $ docker compose -f docker-compose.prod.yaml exec web python manage.py migrate
   $ docker compose -f docker-compose.prod.yaml exec web python manage.py createsuperuser
   ```
+- Collect static files:
+  ```bash
+  $ docker compose -f docker-compose.prod.yaml exec web python manage.py collectstatic
+  ```
 
 Your API will be accessible through the port you specified in your `.env`. If you change anything in your `.env`, run `docker compose -f docker-compose.prod.yaml up -d` again. To shut down the server, run `docker compose -f docker-compose.prod.yaml down`.

@@ -9,7 +9,7 @@
             <div class="list-group-item">
                 <div class="row">
                     <div class="col">
-                        <a href="{% url 'experiment-detail' experiment.id %}">
+                        <a href="{{ api_info.url_prefix }}{% url 'experiment-detail' experiment.id %}">
                             <b>{{ experiment.title }}</b> ({{ experiment.id }})
                         </a>
                     </div>
@@ -22,7 +22,7 @@
             </div>
         {% endfor %}
     </div>
-    <a class="btn btn-primary" href="{% url 'experiment-new' %}">
+    <a class="btn btn-primary" href="{{ api_info.url_prefix }}{% url 'experiment-new' %}">
         <i class="bi bi-plus me-2"></i>
         New experiment
     </a>
@@ -55,7 +55,7 @@
         deleteModal.addEventListener("show.bs.modal", function(event) {
             var experiment = event.relatedTarget.getAttribute("data-bs-experiment");
             deleteModal.querySelector(".modal-body .modal-experiment-id").textContent = experiment;
-            deleteModal.querySelector(".modal-body form").setAttribute("action", "{% url 'experiment-delete' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", experiment));
+            deleteModal.querySelector(".modal-body form").setAttribute("action", "{{ api_info.url_prefix }}{% url 'experiment-delete' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", experiment));
         });
     </script>
 {% endblock content %}
