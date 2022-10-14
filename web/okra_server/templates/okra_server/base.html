@@ -15,7 +15,7 @@
     <body>
         <nav class="navbar navbar-expand-md">
             <div class="container-fluid">
-                <a class="navbar-brand" href="/">{{ api_info.name }}</a>
+                <a class="navbar-brand" href="{{ api_info.url_prefix }}{% url 'index' %}">{{ api_info.name }}</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -34,11 +34,11 @@
                     </ul>
                     {% if user.is_authenticated %}
                         <span class="me-2">Logged in as <b>{{ user.username }}</b></span>
-                        <a class="btn btn-outline-secondary" href="{{ api_info.url_prefix }}{% url 'logout' %}?next=/">
+                        <a class="btn btn-outline-secondary" href="{{ api_info.url_prefix }}{% url 'logout' %}?next={{ api_info.url_prefix }}{% url 'index' %}">
                             Log out
                         </a>
                     {% else %}
-                        <a class="btn btn-outline-primary" href="{{ api_info.url_prefix }}{% url 'login' %}?next={{ request.path }}">
+                        <a class="btn btn-outline-primary" href="{{ api_info.url_prefix }}{% url 'login' %}?next={{ api_info.url_prefix }}{{ request.path }}">
                             Log in
                         </a>
                     {% endif %}
