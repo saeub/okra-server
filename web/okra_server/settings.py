@@ -101,11 +101,13 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 LOGIN_URL = "/login"
+FORCE_SCRIPT_NAME = os.getenv("FORCE_SCRIPT_NAME")
+if FORCE_SCRIPT_NAME is not None:
+    STATIC_URL = FORCE_SCRIPT_NAME + STATIC_URL
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 API_INFO = {
     "name": os.getenv("API_NAME", "Development API"),
     "icon_url": os.getenv("API_ICON_URL"),
-    "path_prefix": os.getenv("API_PATH_PREFIX", ""),
 }
