@@ -71,7 +71,7 @@ def registration_detail(request, participant_id):
     if participant.device_key is not None:
         return HttpResponse("already registered", status=404)
 
-    base_url = request.build_absolute_uri(settings.API_INFO["url_prefix"] + "/api")
+    base_url = request.build_absolute_uri(settings.API_INFO["path_prefix"] + "/api")
     data = f"{base_url}\n" f"{participant.id}\n" f"{participant.registration_key}"
     image = qrcode.make(data)
     image_bytes = io.BytesIO()
@@ -341,7 +341,9 @@ class Login(View):
         user = auth.authenticate(request, username=username, password=password)
         if user is not None:
             auth.login(request, user)
-            return redirect(request.GET.get("next") or index)
+            return redirect(
+                settings.API_INFO["path_prefix"] + request.GET.get("next") or index
+            )
         else:
             return render(
                 request,
@@ -352,4 +354,4 @@ class Login(View):
 
 def logout(request):
     auth.logout(request)
-    return redirect(request.GET.get("next") or index)
+    return redirect(settings.API_INFO["path_prefix"] + request.GET.get("next") or index)

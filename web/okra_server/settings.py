@@ -107,5 +107,5 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 API_INFO = {
     "name": os.getenv("API_NAME", "Development API"),
     "icon_url": os.getenv("API_ICON_URL"),
-    "url_prefix": os.getenv("API_URL_PREFIX", ""),
+    "path_prefix": os.getenv("API_PATH_PREFIX", ""),
 }
