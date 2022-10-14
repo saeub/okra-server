@@ -71,7 +71,7 @@ def registration_detail(request, participant_id):
     if participant.device_key is not None:
         return HttpResponse("already registered", status=404)
 
-    base_url = request.build_absolute_uri("/api")
+    base_url = request.build_absolute_uri(reverse("api:base")).rstrip("/")
     data = f"{base_url}\n" f"{participant.id}\n" f"{participant.registration_key}"
     image = qrcode.make(data)
     image_bytes = io.BytesIO()

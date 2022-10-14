@@ -111,6 +111,16 @@ def _serialize_rating(rating: models.TaskRating) -> dict:
     }
 
 
+@api_view("GET")
+def base(data: dict, **kwargs):
+    return JsonResponse(
+        {
+            "name": settings.API_INFO["name"],
+            "iconUrl": settings.API_INFO["icon_url"],
+        }
+    )
+
+
 @api_view("POST")
 def register(data: dict, **kwargs):
     participant_id = data.get("participantId")
