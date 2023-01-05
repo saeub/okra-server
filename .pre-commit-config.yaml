@@ -1,19 +1,20 @@
 repos:
   - repo: https://github.com/psf/black
-    rev: 22.6.0
+    rev: 22.12.0
     hooks:
       - id: black
-        exclude: ^okra_server/migrations/
-  - repo: https://gitlab.com/PyCQA/flake8
-    rev: 4.0.1
+        exclude: ^web/okra_server/migrations/
+  - repo: https://github.com/PyCQA/flake8
+    rev: 5.0.4
     hooks:
       - id: flake8
-        exclude: ^okra_server/migrations/
+        args: [--config=web/.flake8]
+        exclude: ^web/okra_server/migrations/
   - repo: https://github.com/PyCQA/isort
-    rev: 5.10.1
+    rev: 5.11.4
     hooks:
       - id: isort
-        exclude: ^okra_server/migrations/
+        exclude: ^web/okra_server/migrations/
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v2.7.1
     hooks:

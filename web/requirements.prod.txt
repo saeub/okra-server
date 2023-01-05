@@ -1,0 +1,4 @@
+-r requirements.common.txt
+
+psycopg2==2.9.4
+gunicorn

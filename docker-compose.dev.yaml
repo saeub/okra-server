@@ -1,0 +1,12 @@
+services:
+  web-dev:
+    build:
+      context: web
+      dockerfile: dev.Dockerfile
+    ports:
+      - 8000:8000
+    volumes:
+      - ./web:/app
+    environment:
+      - API_NAME
+      - API_ICON_URL

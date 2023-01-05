@@ -2,26 +2,27 @@
 import os
 from pathlib import Path
 
-import django_heroku
-import dotenv
 from corsheaders.defaults import default_headers
-
-dotenv.load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "insecure_key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DJANGO_DEBUG", "false").lower() in ["true", "yes"]
+DEBUG = True
 
-ALLOWED_HOSTS = []
+if os.getenv("API_HOST"):
+    ALLOWED_HOSTS = [os.getenv("API_HOST")]
+else:
+    ALLOWED_HOSTS = []
 
-if os.getenv("APP_URL"):
+if os.getenv("OKRA_URL"):
     CORS_ALLOWED_ORIGINS = [
-        os.getenv("APP_URL"),
+        os.getenv("OKRA_URL"),
     ]
+else:
+    CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "X-Participant-ID",
     "X-Device-Key",
@@ -62,6 +63,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "okra_server.views.api_info",
             ],
         },
     },
@@ -99,8 +101,13 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 LOGIN_URL = "/login"
+FORCE_SCRIPT_NAME = os.getenv("FORCE_SCRIPT_NAME")
+if FORCE_SCRIPT_NAME is not None:
+    STATIC_URL = FORCE_SCRIPT_NAME + STATIC_URL
 
-API_NAME = "Okra server example API"
-API_ICON_URL = "https://www.uzh.ch/favicon.ico"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
-django_heroku.settings(locals())
+API_INFO = {
+    "name": os.getenv("API_NAME", "Development API"),
+    "icon_url": os.getenv("API_ICON_URL"),
+}

@@ -1,6 +1,6 @@
 {% extends 'okra_server/base.html' %}
 
-{% block title %}okra-server-example{% endblock title %}
+{% block title %}{{ api_info.name }}{% endblock title %}
 
 {% block content %}
     {% if user.is_authenticated %}

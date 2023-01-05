@@ -1,0 +1,41 @@
+services:
+  web:
+    build:
+      context: web
+      dockerfile: prod.Dockerfile
+    depends_on:
+      - postgres
+    expose:
+      - 8000
+    volumes:
+      - staticfiles:/app/staticfiles
+    environment:
+      - API_NAME
+      - API_ICON_URL
+      - API_HOST
+      - OKRA_URL
+      - DJANGO_SECRET_KEY
+      - FORCE_SCRIPT_NAME
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+  postgres:
+    image: postgres:14
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+  nginx:
+    build: nginx
+    depends_on:
+      - web
+    ports:
+      - ${HOST_PORT:-80}:80
+    volumes:
+      - staticfiles:/staticfiles
+
+volumes:
+  postgres-data:
+  staticfiles:

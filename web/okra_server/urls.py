@@ -15,7 +15,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("login", views.Login.as_view(), name="login"),
     path("logout", views.logout, name="logout"),
-    path("", views.index),
+    path("", views.index, name="index"),
     path(
         "registration/<participant_id>",
         views.registration_detail,

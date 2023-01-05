@@ -7,12 +7,15 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
         <title>{% block title %}{% endblock title %}</title>
+        {% if api_info.icon_url %}
+            <link rel="icon" type="image/x-icon" href="{{ api_info.icon_url }}">
+        {% endif %}
         {% block head %}{% endblock head %}
     </head>
     <body>
         <nav class="navbar navbar-expand-md">
             <div class="container-fluid">
-                <a class="navbar-brand" href="/">okra-server-example</a>
+                <a class="navbar-brand" href="{% url 'index' %}">{{ api_info.name }}</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -31,7 +34,7 @@
                     </ul>
                     {% if user.is_authenticated %}
                         <span class="me-2">Logged in as <b>{{ user.username }}</b></span>
-                        <a class="btn btn-outline-secondary" href="{% url 'logout' %}?next=/">
+                        <a class="btn btn-outline-secondary" href="{% url 'logout' %}?next={% url 'index' %}">
                             Log out
                         </a>
                     {% else %}
