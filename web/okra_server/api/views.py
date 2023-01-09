@@ -196,7 +196,7 @@ def start_task(
         return NO_ASSIGNABLE_TASKS_RESPONSE
     n_tasks = experiment.get_n_tasks(participant)
     n_tasks_done = experiment.get_n_tasks(participant, started=True)
-    return JsonResponse(_serialize_task(task, is_final=n_tasks_done == n_tasks - 1))
+    return JsonResponse(_serialize_task(task, is_final=n_tasks_done == n_tasks))
 
 
 @api_view("POST", check_credentials=True)

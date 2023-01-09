@@ -175,8 +175,8 @@ def test_post_experiment_detail(staff_authenticated_client, experiments):
             "title": "New title",
             "instructions": "New instructions",
             "instructionsAfterTask": "You've completed the task.",
-            "instructionsAfterPracticeTask": None,
-            "instructionsAfterFinalTask": None,
+            "instructionsAfterPracticeTask": "You've completed the practice task.",
+            "instructionsAfterFinalTask": "You've completed the final task.",
             "practiceTask": {
                 "id": str(experiment.practice_task.id),
                 "label": "New practice task",
@@ -223,9 +223,15 @@ def test_post_experiment_detail(staff_authenticated_client, experiments):
         assert experiment.task_type == "cloze"
         assert experiment.title == "New title"
         assert experiment.instructions == "New instructions"
-        assert experiment.instructions_after_practice_task is None
+        assert (
+            experiment.instructions_after_practice_task
+            == "You've completed the practice task."
+        )
         assert experiment.instructions_after_task == "You've completed the task."
-        assert experiment.instructions_after_final_task is None
+        assert (
+            experiment.instructions_after_final_task
+            == "You've completed the final task."
+        )
         if experiment.practice_task is not None:
             assert experiment.practice_task.label == "New practice task"
             assert experiment.practice_task.data == {"new": "practice data"}
