@@ -8,6 +8,7 @@ Vue.component("experiment-form", {
         <div class="col-auto">
           <input class="form-control" type="file" @change="loadFile">
         </div>
+      </div>
       <div class="input-group mb-2">
         <span class="input-group-text">ID</span>
         <input type="text" class="form-control" v-model="data.id" @input="emitData()" disabled>
