@@ -6,7 +6,7 @@ This is an implementation of a server and API for [Okra](https://github.com/saeu
 
 - [Docker](https://docs.docker.com/get-docker/) with [Docker Compose](https://docs.docker.com/compose/install/)
 
-If you prefer not to use Docker for development or production, the Django app can also be run directly. In this case, use Python >= 3.6 and install `web/requirements.dev.txt` or `web/requirements.prod.txt`.
+If you prefer not to use Docker for development or production, the Django app can also be run directly. In this case, use Python >= 3.7 and install `web/requirements.dev.txt` or `web/requirements.prod.txt`.
 
 ## Development setup
 
