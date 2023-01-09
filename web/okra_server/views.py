@@ -170,79 +170,87 @@ class ExperimentDetail(View):
         )
 
     def post(self, request, experiment_id=None):
-        experiment = self._get_experiment(experiment_id)
-        data = json.loads(request.body)
+        try:
+            experiment = self._get_experiment(experiment_id)
+            data = json.loads(request.body)
 
-        experiment.task_type = data["taskType"]
-        experiment.title = data["title"]
-        experiment.instructions = data["instructions"]
-        experiment.instructions_after_task = data["instructionsAfterTask"]
-        experiment.instructions_after_practice_task = data[
-            "instructionsAfterPracticeTask"
-        ]
-        experiment.instructions_after_final_task = data["instructionsAfterFinalTask"]
+            experiment.task_type = data["taskType"]
+            experiment.title = data["title"]
+            experiment.instructions = data["instructions"]
+            experiment.instructions_after_task = data["instructionsAfterTask"]
+            experiment.instructions_after_practice_task = data[
+                "instructionsAfterPracticeTask"
+            ]
+            experiment.instructions_after_final_task = data[
+                "instructionsAfterFinalTask"
+            ]
 
-        practice_task_data = data["practiceTask"]
-        if experiment.practice_task is not None and (
-            practice_task_data is None
-            or experiment.practice_task.id != uuid.UUID(practice_task_data["id"])
-        ):
-            experiment.practice_task.delete()
-            experiment.practice_task = None
-        if practice_task_data is not None:
-            experiment.practice_task = self._get_task(practice_task_data["id"])
-            experiment.practice_task.label = practice_task_data["label"]
-            experiment.practice_task.data = practice_task_data["data"]
-            experiment.practice_task.save()
+            practice_task_data = data["practiceTask"]
+            if experiment.practice_task is not None and (
+                practice_task_data is None
+                or experiment.practice_task.id != uuid.UUID(practice_task_data["id"])
+            ):
+                experiment.practice_task.delete()
+                experiment.practice_task = None
+            if practice_task_data is not None:
+                experiment.practice_task = self._get_task(practice_task_data["id"])
+                experiment.practice_task.label = practice_task_data["label"]
+                experiment.practice_task.data = practice_task_data["data"]
+                experiment.practice_task.save()
 
-        experiment.save()
+            experiment.save()
 
-        tasks_to_delete = set(experiment.tasks.all())
-        for task_data in data["tasks"]:
-            task = self._get_task(task_data["id"])
-            if task in tasks_to_delete:
-                tasks_to_delete.remove(task)
-            task.experiment = experiment
-            task.label = task_data["label"]
-            task.data = task_data["data"]
-            task.save()
-        for task in tasks_to_delete:
-            task.delete()
+            tasks_to_delete = set(experiment.tasks.all())
+            for task_data in data["tasks"]:
+                task = self._get_task(task_data["id"])
+                if task in tasks_to_delete:
+                    tasks_to_delete.remove(task)
+                task.experiment = experiment
+                task.label = task_data["label"]
+                task.data = task_data["data"]
+                task.save()
+            for task in tasks_to_delete:
+                task.delete()
 
-        for assignment_data in data["assignments"]:
-            participant = models.Participant.objects.get(
-                id=assignment_data["participant"]
-            )
-            experiment.get_assignments(participant).filter(
-                started_time__isnull=True
-            ).delete()
-            for task_data in assignment_data["tasks"]:
-                if task_data["started"]:
-                    continue
-                models.TaskAssignment.objects.create(
-                    participant=participant,
-                    task_id=task_data["id"],
+            for assignment_data in data["assignments"]:
+                participant = models.Participant.objects.get(
+                    id=assignment_data["participant"]
                 )
+                experiment.get_assignments(participant).filter(
+                    started_time__isnull=True
+                ).delete()
+                for task_data in assignment_data["tasks"]:
+                    if task_data["started"]:
+                        continue
+                    models.TaskAssignment.objects.create(
+                        participant=participant,
+                        task_id=task_data["id"],
+                    )
 
-        experiment.ratings.all().delete()
-        for rating_data in data["ratings"]:
-            rating = self._get_rating(rating_data["id"])
-            rating.experiment = experiment
-            rating.question = rating_data["question"]
-            rating.rating_type = rating_data["type"]
-            rating.low_extreme = rating_data["lowExtreme"]
-            rating.high_extreme = rating_data["highExtreme"]
-            rating.save()
+            experiment.ratings.all().delete()
+            for rating_data in data["ratings"]:
+                rating = self._get_rating(rating_data["id"])
+                rating.experiment = experiment
+                rating.question = rating_data["question"]
+                rating.rating_type = rating_data["type"]
+                rating.low_extreme = rating_data["lowExtreme"]
+                rating.high_extreme = rating_data["highExtreme"]
+                rating.save()
 
-        return JsonResponse(
-            {
-                "message": "Saved",
-                "redirect": reverse(
-                    "experiment-detail", kwargs={"experiment_id": experiment.id}
-                ),
-            },
-            status=200,
-        )
+            return JsonResponse(
+                {
+                    "message": "Saved",
+                    "redirect": reverse(
+                        "experiment-detail", kwargs={"experiment_id": experiment.id}
+                    ),
+                },
+                status=200,
+            )
+        except KeyError as e:
+            return JsonResponse(
+                {"message": f"Missing key: {e}"},
+                status=400,
+            )
 
     @staticmethod
     def _get_experiment(experiment_id) -> models.Experiment:

@@ -1,7 +1,13 @@
 Vue.component("experiment-form", {
   template: `
     <div>
-      <h1>Experiment "{{ data.title }}"</h1>
+      <div class="row">
+        <div class="col">
+          <h1>Experiment "{{ data.title }}"</h1>
+        </div>
+        <div class="col-auto">
+          <input class="form-control" type="file" @change="loadFile">
+        </div>
       <div class="input-group mb-2">
         <span class="input-group-text">ID</span>
         <input type="text" class="form-control" v-model="data.id" @input="emitData()" disabled>
@@ -129,6 +135,18 @@ Vue.component("experiment-form", {
   },
 
   methods: {
+    loadFile(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const id = this.data.id;
+        this.data = JSON.parse(event.target.result);
+        this.data.id = id;
+        this.emitData();
+      };
+      reader.readAsText(file);
+    },
+
     addPracticeTask() {
       this.data.practiceTask = {
         id: uuidv4(),
