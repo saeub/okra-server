@@ -67,6 +67,9 @@ class Experiment(models.Model):
     title = models.CharField(max_length=100)
     cover_image_url = models.URLField(null=True)
     instructions = models.TextField()
+    instructions_after_task = models.TextField(null=True)
+    instructions_after_practice_task = models.TextField(null=True)
+    instructions_after_final_task = models.TextField(null=True)
     practice_task = models.OneToOneField(
         "Task",
         null=True,
@@ -147,12 +150,19 @@ class Task(models.Model):
         related_name="tasks",
     )
     data = models.JSONField(null=True)
-    instructions_after = models.TextField(null=True)
 
     def __str__(self):
         if self.experiment is None:
             return f'Practice task "{self.id}" of {self.practice_experiment}'
         return f'Task "{self.id}" of {self.experiment}'
+
+    @property
+    def is_practice(self) -> bool:
+        try:
+            self.practice_experiment
+            return True
+        except Experiment.DoesNotExist:
+            return False
 
     def finish(self, participant: Participant, results: Optional[dict]):
         self.assignments.get(

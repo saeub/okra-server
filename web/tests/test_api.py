@@ -12,6 +12,8 @@ def experiment(registered_participant):
         task_type=TaskType.QUESTION_ANSWERING,
         title="Test experiment",
         instructions="Read the text and answer the questions.",
+        instructions_after_task="You've completed the task.",
+        instructions_after_practice_task="You've completed the practice task.",
         practice_task=pt,
     )
     t = Task.objects.create(
@@ -26,7 +28,6 @@ def experiment(registered_participant):
                 },
             ],
         },
-        instructions_after="You've completed the task.",
     )
     TaskAssignment.objects.create(
         participant=registered_participant,
@@ -87,7 +88,7 @@ def test_start_finish_task(client, registered_participant, experiment):
     assert response.status_code == 200, response.content
     assert response.json()["id"] == str(assignment.task.id)
     assert response.json()["data"] == assignment.task.data
-    assert response.json()["instructionsAfter"] == assignment.task.instructions_after
+    assert response.json()["instructionsAfter"] == experiment.instructions_after_task
     assert assignment.started_time is not None
     assert assignment.finished_time is None
     assert assignment.results is None
@@ -127,7 +128,7 @@ def test_start_restart_task(client, registered_participant, experiment):
     assert response.status_code == 200, response.content
     assert response.json()["id"] == str(assignment.task.id)
     assert response.json()["data"] == assignment.task.data
-    assert response.json()["instructionsAfter"] == assignment.task.instructions_after
+    assert response.json()["instructionsAfter"] == experiment.instructions_after_task
     assert assignment.started_time is not None
     assert assignment.finished_time is None
     assert assignment.results is None
@@ -225,8 +226,8 @@ def test_start_restart_finish_practice_task(client, registered_participant, expe
     )
     assert (
         response.json()["instructionsAfter"]
-        == assignment.task.instructions_after
-        == experiment.practice_task.instructions_after
+        == assignment.task.practice_experiment.instructions_after_practice_task
+        == experiment.instructions_after_practice_task
     )
     assert assignment.started_time is not None
     assert assignment.finished_time is None
@@ -258,8 +259,8 @@ def test_start_restart_finish_practice_task(client, registered_participant, expe
     )
     assert (
         response.json()["instructionsAfter"]
-        == assignment.task.instructions_after
-        == experiment.practice_task.instructions_after
+        == assignment.task.practice_experiment.instructions_after_practice_task
+        == experiment.instructions_after_practice_task
     )
     assert assignment.started_time is not None
     assert assignment.finished_time is None
@@ -283,3 +284,86 @@ def test_start_restart_finish_practice_task(client, registered_participant, expe
     assert assignment.finished_time is not None
     assert assignment.results == results
     assert experiment.get_n_tasks(registered_participant, started=True) == 0
+
+
+def test_instructions(client, registered_participant, experiment):
+    experiment.instructions_after_final_task = "You've completed the final task."
+    experiment.save()
+    final_task = Task.objects.create(
+        experiment=experiment,
+        data={
+            "segments": [
+                {
+                    "text": "This is another .",
+                    "blankPosition": 16,
+                    "options": ["example", "text", "pineapple"],
+                    "correctOptionIndex": 0,
+                },
+            ],
+        },
+    )
+    TaskAssignment.objects.create(
+        participant=registered_participant,
+        task=final_task,
+    )
+    results = {
+        "data": {"dummy_key": "dummy_value"},
+        "events": [{"time": "dummy_time", "label": "dummy_label", "data": None}],
+    }
+
+    # Practice task
+    response = client.post(
+        f"/api/experiments/{experiment.id}/start?practice=true",
+        content_type="application/json",
+        HTTP_X_PARTICIPANT_ID=registered_participant.id,
+        HTTP_X_DEVICE_KEY=registered_participant.device_key,
+    )
+    assert response.status_code == 200, response.content
+    assert response.json()["instructionsAfter"] == "You've completed the practice task."
+    response = client.post(
+        f"/api/tasks/{response.json()['id']}/finish",
+        results,
+        content_type="application/json",
+        HTTP_X_PARTICIPANT_ID=registered_participant.id,
+        HTTP_X_DEVICE_KEY=registered_participant.device_key,
+    )
+    assert response.status_code == 200, response.content
+    assert experiment.get_n_tasks(registered_participant, started=True) == 0
+
+    # First task
+    response = client.post(
+        f"/api/experiments/{experiment.id}/start",
+        content_type="application/json",
+        HTTP_X_PARTICIPANT_ID=registered_participant.id,
+        HTTP_X_DEVICE_KEY=registered_participant.device_key,
+    )
+    assert response.status_code == 200, response.content
+    assert response.json()["instructionsAfter"] == "You've completed the task."
+    response = client.post(
+        f"/api/tasks/{response.json()['id']}/finish",
+        results,
+        content_type="application/json",
+        HTTP_X_PARTICIPANT_ID=registered_participant.id,
+        HTTP_X_DEVICE_KEY=registered_participant.device_key,
+    )
+    assert response.status_code == 200, response.content
+    assert experiment.get_n_tasks(registered_participant, started=True) == 1
+
+    # Final task
+    response = client.post(
+        f"/api/experiments/{experiment.id}/start",
+        content_type="application/json",
+        HTTP_X_PARTICIPANT_ID=registered_participant.id,
+        HTTP_X_DEVICE_KEY=registered_participant.device_key,
+    )
+    assert response.status_code == 200, response.content
+    assert response.json()["instructionsAfter"] == "You've completed the final task."
+    response = client.post(
+        f"/api/tasks/{response.json()['id']}/finish",
+        results,
+        content_type="application/json",
+        HTTP_X_PARTICIPANT_ID=registered_participant.id,
+        HTTP_X_DEVICE_KEY=registered_participant.device_key,
+    )
+    assert response.status_code == 200, response.content
+    assert experiment.get_n_tasks(registered_participant, started=True) == 2

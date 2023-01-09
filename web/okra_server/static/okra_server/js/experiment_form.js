@@ -20,7 +20,15 @@ Vue.component("experiment-form", {
       </div>
       <div class="form-floating mb-2">
         <textarea class="form-control" style="height: 100px" v-model="data.instructions" @input="emitData()"></textarea>
-        <label>Instructions</label>
+        <label>Instructions before task</label>
+      </div>
+      <div class="form-floating mb-2">
+        <textarea class="form-control" style="height: 100px" v-model="data.instructionsAfterTask" @input="emitData()"></textarea>
+        <label>Instructions after each task</label>
+      </div>
+      <div class="form-floating mb-2">
+        <textarea class="form-control" style="height: 100px" v-model="data.instructionsAfterFinalTask" @input="emitData()"></textarea>
+        <label>Instructions after final task</label>
       </div>
       <section class="mb-2">
         <h2>
@@ -29,6 +37,10 @@ Vue.component("experiment-form", {
           <button type="button" class="btn btn-outline-danger btn-sm" v-else @click="removePracticeTask()"><i class="bi bi-trash-fill"></i></button>
         </h2>
         <task v-if="data.practiceTask !== null" v-model="data.practiceTask" @input="emitData()"></task>
+        <div v-if="data.practiceTask !== null" class="form-floating mb-2">
+          <textarea class="form-control" style="height: 100px" v-model="data.instructionsAfterPracticeTask" @input="emitData()"></textarea>
+          <label>Instructions after practice task</label>
+        </div>
       </section>
       <section class="mb-2">
         <h2>Tasks</h2>
@@ -122,7 +134,6 @@ Vue.component("experiment-form", {
         id: uuidv4(),
         label: `practice-task`,
         data: {},
-        instructionsAfter: "",
       };
       this.emitData();
     },
@@ -138,7 +149,6 @@ Vue.component("experiment-form", {
         key: this.taskKeyCounter,
         label: `task-${this.taskKeyCounter}`,
         data: {},
-        instructionsAfter: "",
       });
       this.taskKeyCounter++;
       this.emitData();
@@ -185,10 +195,6 @@ Vue.component("task", {
         <label>Label</label>
       </div>
       <json-editor class="mb-2" v-model="task.data" @input="emitData()"></json-editor>
-      <div class="form-floating">
-        <textarea class="form-control" style="height: 100px" v-model="task.instructionsAfter" @input="emitData()"></textarea>
-        <label>Instructions after task</label>
-      </div>
     </div>
   `,
 

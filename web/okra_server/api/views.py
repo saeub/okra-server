@@ -94,11 +94,24 @@ def _serialize_experiment(
     }
 
 
-def _serialize_task(task: models.Task) -> dict:
+def _serialize_task(task: models.Task, *, is_final: bool) -> dict:
+    if task.is_practice:
+        instructions_after = (
+            task.practice_experiment.instructions_after_practice_task
+            or task.practice_experiment.instructions_after_task
+        )
+    elif is_final:
+        instructions_after = (
+            task.experiment.instructions_after_final_task
+            or task.experiment.instructions_after_task
+        )
+    else:
+        instructions_after = task.experiment.instructions_after_task
+
     return {
         "id": task.id,
         "data": task.data,
-        "instructionsAfter": task.instructions_after,
+        "instructionsAfter": instructions_after or None,
     }
 
 
@@ -181,7 +194,9 @@ def start_task(
         )
     except exceptions.NoTasksAvailable:
         return NO_ASSIGNABLE_TASKS_RESPONSE
-    return JsonResponse(_serialize_task(task))
+    n_tasks = experiment.get_n_tasks(participant)
+    n_tasks_done = experiment.get_n_tasks(participant, started=True)
+    return JsonResponse(_serialize_task(task, is_final=n_tasks_done == n_tasks))
 
 
 @api_view("POST", check_credentials=True)

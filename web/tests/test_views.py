@@ -27,11 +27,11 @@ def experiments(registered_participant):
         task_type=models.TaskType.QUESTION_ANSWERING,
         title="Test experiment",
         instructions="Read the text and answer the questions.",
+        instructions_after_task="You've completed the task.",
     )
     t2 = models.Task.objects.create(
         experiment=e2,
         data={},
-        instructions_after="You've completed the task.",
     )
     models.TaskAssignment.objects.create(
         participant=registered_participant,
@@ -174,11 +174,13 @@ def test_post_experiment_detail(staff_authenticated_client, experiments):
             "taskType": "cloze",
             "title": "New title",
             "instructions": "New instructions",
+            "instructionsAfterTask": "You've completed the task.",
+            "instructionsAfterPracticeTask": "You've completed the practice task.",
+            "instructionsAfterFinalTask": "You've completed the final task.",
             "practiceTask": {
                 "id": str(experiment.practice_task.id),
                 "label": "New practice task",
                 "data": {"new": "practice data"},
-                "instructionsAfter": None,
             }
             if experiment.practice_task is not None
             else None,
@@ -187,7 +189,6 @@ def test_post_experiment_detail(staff_authenticated_client, experiments):
                     "id": str(task.id),
                     "label": "New label",
                     "data": {"new": "data"},
-                    "instructionsAfter": "You've completed the task.",
                 }
                 for task in experiment.tasks.all()
             ],
@@ -222,15 +223,22 @@ def test_post_experiment_detail(staff_authenticated_client, experiments):
         assert experiment.task_type == "cloze"
         assert experiment.title == "New title"
         assert experiment.instructions == "New instructions"
+        assert (
+            experiment.instructions_after_practice_task
+            == "You've completed the practice task."
+        )
+        assert experiment.instructions_after_task == "You've completed the task."
+        assert (
+            experiment.instructions_after_final_task
+            == "You've completed the final task."
+        )
         if experiment.practice_task is not None:
             assert experiment.practice_task.label == "New practice task"
             assert experiment.practice_task.data == {"new": "practice data"}
-            assert experiment.practice_task.instructions_after is None
         assert experiment.tasks.count() == task_count_before
         for task in experiment.tasks.all():
             assert task.label == "New label"
             assert task.data == {"new": "data"}
-            assert task.instructions_after == "You've completed the task."
         assert experiment.ratings.count() == rating_count_before
         for rating in experiment.ratings.all():
             assert rating.question == "New rating"
