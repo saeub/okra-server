@@ -19,7 +19,7 @@
                         <div style="overflow-x: auto;">
                             <svg id="graph-{{ task.task }}" width="{{ task.graph_width }}" height="200">
                                 {% for event in task.results.events %}
-                                    <circle cx="{{ event.time }}" cy="5" r="5" fill="{{ event.color }}" />
+                                    <circle cx="{{ event.time }}" cy="5" r="5" fill="{{ event.color }}"></circle>
                                     <text x="10" y="-{{ event.time }}" fill="{{ event.color }}" transform="rotate(90)">{{ event.label }}</text>
                                 {% endfor %}
                             </svg>

@@ -1,10 +1,10 @@
 import base64
-from datetime import datetime
 import io
 import itertools
 import json
 import random
 import uuid
+from datetime import datetime
 
 import qrcode
 from django.conf import settings
@@ -315,18 +315,26 @@ def experiment_results_graph(request, experiment_id, participant_id):
 
     tasks = []
     label_colors = {}
-    assignments = itertools.chain(experiment.get_assignments(participant, practice=True), experiment.get_assignments(participant))
+    assignments = itertools.chain(
+        experiment.get_assignments(participant, practice=True),
+        experiment.get_assignments(participant),
+    )
     for assignment in assignments:
         if assignment.results is not None:
             results = assignment.results
-            start_timestamp = datetime.fromisoformat(results["events"][0]["time"].replace("Z", "+00:00")).timestamp()
+            start_timestamp = datetime.fromisoformat(
+                results["events"][0]["time"].replace("Z", "+00:00")
+            ).timestamp()
             for event in results["events"]:
                 time = datetime.fromisoformat(event["time"].replace("Z", "+00:00"))
                 event["time"] = (time.timestamp() - start_timestamp) * 100
                 event["color"] = label_colors.setdefault(event["label"], random_color())
         tasks.append(
             {
-                "task": str(assignment.task.id) + (" (practice)" if assignment.task == experiment.practice_task else ""),
+                "task": str(assignment.task.id)
+                + (
+                    " (practice)" if assignment.task == experiment.practice_task else ""
+                ),
                 "results": assignment.results,
                 "started_time": assignment.started_time,
                 "finished_time": assignment.finished_time,
@@ -340,7 +348,7 @@ def experiment_results_graph(request, experiment_id, participant_id):
             "experiment": experiment,
             "participant": participant.id,
             "tasks": tasks,
-        }
+        },
     )
 
 
