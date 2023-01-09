@@ -254,6 +254,67 @@ def test_post_experiment_detail(staff_authenticated_client, experiments):
             )
 
 
+def test_post_experiment_detail_clear(staff_authenticated_client, experiments):
+    for experiment in experiments:
+        data = {
+            "taskType": "reading",
+            "title": "",
+            "instructions": "",
+            "instructionsAfterTask": None,
+            "instructionsAfterPracticeTask": None,
+            "instructionsAfterFinalTask": None,
+            "practiceTask": None,
+            "tasks": [],
+            "ratings": [],
+            "assignments": [],
+        }
+        response = staff_authenticated_client.post(
+            f"/experiments/{experiment.id}", data, content_type="application/json"
+        )
+        assert response.status_code == 200, response.content
+        experiment.refresh_from_db()
+        assert experiment.task_type == "reading"
+        assert experiment.title == ""
+        assert experiment.instructions == ""
+        assert experiment.instructions_after_practice_task is None
+        assert experiment.instructions_after_task is None
+        assert experiment.instructions_after_final_task is None
+        assert experiment.practice_task is None
+        assert experiment.tasks.count() == 0
+        assert experiment.ratings.count() == 0
+        for participant in models.Participant.objects.all():
+            assert experiment.get_assignments(participant).count() == 0
+
+
+def test_post_experiment_detail_missing_key(staff_authenticated_client, experiments):
+    for experiment in experiments:
+        data = {
+            "taskType": "reading",
+            "title": "",
+            "instructions": "",
+            "instructionsAfterTask": None,
+            "instructionsAfterPracticeTask": None,
+            "instructionsAfterFinalTask": None,
+            "practiceTask": None,
+            "tasks": [],
+            "ratings": [],
+            "assignments": [],
+        }
+        response = staff_authenticated_client.post(
+            f"/experiments/{experiment.id}", data, content_type="application/json"
+        )
+        for key in data:
+            invalid_data = data.copy()
+            del invalid_data[key]
+            response = staff_authenticated_client.post(
+                f"/experiments/{experiment.id}",
+                invalid_data,
+                content_type="application/json",
+            )
+            assert response.status_code == 400, response.content
+            assert response.json() == {"message": f"Missing key: {key!r}"}
+
+
 def test_post_delete_experiment(staff_authenticated_client, experiments):
     for experiment in experiments:
         staff_authenticated_client.post(f"/experiments/{experiment.id}/delete")
