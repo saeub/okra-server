@@ -62,13 +62,14 @@ def private_urls():
 
 
 @pytest.fixture
-def admin_urls(experiments):
+def admin_urls(experiments, registered_participant):
     return [
         "/experiments",
         "/experiments/new",
         f"/experiments/{experiments[0].id}",
         f"/experiments/{experiments[0].id}/results",
         f"/experiments/{experiments[0].id}/results?download",
+        f"/experiments/{experiments[0].id}/results/{registered_participant.id}/graph",
     ]
 
 
@@ -143,9 +144,10 @@ def test_get_index_authenticated(
     assert response.status_code == 200, response.content
     for experiment in experiments:
         assert str(experiment.id) in response.content.decode()
-    assert response.content.decode().count(str(registered_participant.id)) == len(
-        experiments
-    )
+    assert (
+        response.content.decode().count(str(registered_participant.id))
+        == len(experiments) * 2
+    )  # Two occurrences per experiment: once as a heading, once as a button
 
 
 def test_get_experiment_list(staff_authenticated_client, experiments):

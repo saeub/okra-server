@@ -1,0 +1,34 @@
+{% extends 'okra_server/base.html' %}
+
+{% block title %}Results: {{ experiment.title }}{% endblock title %}
+
+{% block content %}
+    <h1>Results</h1>
+    <p>
+        Experiment: {{ experiment.title }} ({{ experiment.id }})
+    </p>
+    <p>
+        Participant: {{ participant }}
+    </p>
+    <div class="list-group mb-2">
+        {% for task in tasks %}
+            <div class="card mb-2">
+                <div class="card-body">
+                    <h5 class="card-title">{{ task.task }}</h5>
+                    {% if task.results %}
+                        <div style="overflow-x: auto;">
+                            <svg id="graph-{{ task.task }}" width="{{ task.graph_width }}" height="200">
+                                {% for event in task.results.events %}
+                                    <circle cx="{{ event.time }}" cy="5" r="5" fill="{{ event.color }}"></circle>
+                                    <text x="10" y="-{{ event.time }}" fill="{{ event.color }}" transform="rotate(90)">{{ event.label }}</text>
+                                {% endfor %}
+                            </svg>
+                        </div>
+                    {% else %}
+                        (no results)
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock content %}

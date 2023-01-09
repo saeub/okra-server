@@ -42,6 +42,11 @@ urlpatterns = [
         name="experiment-results",
     ),
     path(
+        "experiments/<uuid:experiment_id>/results/<uuid:participant_id>/graph",
+        staff_required(views.experiment_results_graph),
+        name="experiment-results-graph",
+    ),
+    path(
         "experiments/<uuid:experiment_id>/delete",
         staff_required(views.delete_experiment),
         name="experiment-delete",
