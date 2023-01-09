@@ -62,13 +62,14 @@ def private_urls():
 
 
 @pytest.fixture
-def admin_urls(experiments):
+def admin_urls(experiments, registered_participant):
     return [
         "/experiments",
         "/experiments/new",
         f"/experiments/{experiments[0].id}",
         f"/experiments/{experiments[0].id}/results",
         f"/experiments/{experiments[0].id}/results?download",
+        f"/experiments/{experiments[0].id}/results/{registered_participant.id}/graph",
     ]
 
 
