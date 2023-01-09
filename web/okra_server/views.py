@@ -106,14 +106,18 @@ class ExperimentDetail(View):
                     "taskType": experiment.task_type,
                     "title": experiment.title,
                     "instructions": experiment.instructions,
+                    "instructionsAfterTask": experiment.instructions_after_task,
+                    "instructionsAfterPracticeTask": (
+                        experiment.instructions_after_practice_task
+                    ),
+                    "instructionsAfterFinalTask": (
+                        experiment.instructions_after_final_task
+                    ),
                     "practiceTask": (
                         {
                             "id": str(experiment.practice_task.id),
                             "label": experiment.practice_task.label,
                             "data": experiment.practice_task.data,
-                            "instructionsAfter": (
-                                experiment.practice_task.instructions_after
-                            ),
                         }
                         if experiment.practice_task is not None
                         else None
@@ -123,7 +127,6 @@ class ExperimentDetail(View):
                             "id": str(task.id),
                             "label": task.label,
                             "data": task.data,
-                            "instructionsAfter": task.instructions_after,
                         }
                         for task in experiment.tasks.all()
                     ],
@@ -170,6 +173,11 @@ class ExperimentDetail(View):
         experiment.task_type = data["taskType"]
         experiment.title = data["title"]
         experiment.instructions = data["instructions"]
+        experiment.instructions_after_task = data["instructionsAfterTask"]
+        experiment.instructions_after_practice_task = data[
+            "instructionsAfterPracticeTask"
+        ]
+        experiment.instructions_after_final_task = data["instructionsAfterFinalTask"]
 
         practice_task_data = data["practiceTask"]
         if experiment.practice_task is not None and (
@@ -182,9 +190,6 @@ class ExperimentDetail(View):
             experiment.practice_task = self._get_task(practice_task_data["id"])
             experiment.practice_task.label = practice_task_data["label"]
             experiment.practice_task.data = practice_task_data["data"]
-            experiment.practice_task.instructions_after = practice_task_data[
-                "instructionsAfter"
-            ]
             experiment.practice_task.save()
 
         experiment.save()
@@ -197,7 +202,6 @@ class ExperimentDetail(View):
             task.experiment = experiment
             task.label = task_data["label"]
             task.data = task_data["data"]
-            task.instructions_after = task_data["instructionsAfter"]
             task.save()
         for task in tasks_to_delete:
             task.delete()
