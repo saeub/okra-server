@@ -329,18 +329,20 @@ def experiment_results_graph(request, experiment_id, participant_id):
                 time = datetime.fromisoformat(event["time"].replace("Z", "+00:00"))
                 event["time"] = (time.timestamp() - start_timestamp) * 100
                 event["color"] = label_colors.setdefault(event["label"], random_color())
-        tasks.append(
-            {
-                "task": str(assignment.task.id)
-                + (
-                    " (practice)" if assignment.task == experiment.practice_task else ""
-                ),
-                "results": assignment.results,
-                "started_time": assignment.started_time,
-                "finished_time": assignment.finished_time,
-                "graph_width": results["events"][-1]["time"] + 20,
-            }
-        )
+            tasks.append(
+                {
+                    "task": str(assignment.task.id)
+                    + (
+                        " (practice)"
+                        if assignment.task == experiment.practice_task
+                        else ""
+                    ),
+                    "results": assignment.results,
+                    "started_time": assignment.started_time,
+                    "finished_time": assignment.finished_time,
+                    "graph_width": results["events"][-1]["time"] + 20,
+                }
+            )
     return render(
         request,
         "okra_server/experiment_results_graph.html",
