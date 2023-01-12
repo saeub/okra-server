@@ -145,7 +145,10 @@ class ExperimentDetail(View):
                     ],
                     "assignments": [
                         {
-                            "participant": str(participant.id),
+                            "participant": {
+                                "id": str(participant.id),
+                                "label": participant.label,
+                            },
                             "tasks": [
                                 {
                                     "id": str(assignment.task.id),
@@ -214,7 +217,7 @@ class ExperimentDetail(View):
 
             for assignment_data in data["assignments"]:
                 participant = models.Participant.objects.get(
-                    id=assignment_data["participant"]
+                    id=assignment_data["participant"]["id"]
                 )
                 experiment.get_assignments(participant).filter(
                     started_time__isnull=True
@@ -376,6 +379,15 @@ class ParticipantList(ListView):
 @require_POST
 def new_participant(request):
     models.Participant.objects.create()
+    return redirect("participant-list")
+
+
+@require_POST
+def label_participant(request, participant_id):
+    new_label = request.POST["label"]
+    participant = models.Participant.objects.get(id=participant_id)
+    participant.label = new_label
+    participant.save()
     return redirect("participant-list")
 
 

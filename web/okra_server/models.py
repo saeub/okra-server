@@ -21,6 +21,7 @@ new_registration_key = partial(_random_key, 24)
 
 class Participant(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    label = models.CharField(max_length=50, default="unlabeled", blank=True)
     device_key = models.CharField(max_length=24, null=True)
     registration_key = models.CharField(
         max_length=24, null=True, default=new_registration_key

@@ -62,6 +62,11 @@ urlpatterns = [
         name="participant-new",
     ),
     path(
+        "participants/<uuid:participant_id>/label",
+        staff_required(views.label_participant),
+        name="participant-label",
+    ),
+    path(
         "participants/<uuid:participant_id>/unregister",
         staff_required(views.unregister_participant),
         name="participant-unregister",

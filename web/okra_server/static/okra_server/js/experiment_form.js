@@ -90,8 +90,8 @@ Vue.component("experiment-form", {
       <section>
         <h2>Assignments</h2>
         <ul class="list-group">
-          <li class="list-group-item" v-for="assignment in data.assignments" :key="'participant-' + assignment.participant">
-            <h3 class="h6">Participant: {{ assignment.participant }}</h3>
+          <li class="list-group-item" v-for="assignment in data.assignments" :key="'participant-' + assignment.participant.id">
+            <h3 class="h6">Participant: {{ assignment.participant.label }} ({{ assignment.participant.id }})</h3>
             <task-assignments :tasks="data.tasks" v-model="assignment.tasks"></task-assignments>
           </li>
         </ul>
