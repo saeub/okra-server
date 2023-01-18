@@ -204,16 +204,13 @@ def test_post_experiment_detail(staff_authenticated_client, experiments):
                 }
                 for rating in experiment.ratings.all()
             ],
-            "assignments": [
-                {
-                    "participant": str(participant.id),
-                    "tasks": [
-                        {"id": str(task.id), "started": False}
-                        for task in experiment.tasks.all()
-                    ],
-                }
+            "assignments": {
+                str(participant.id): [
+                    {"id": str(task.id), "started": False}
+                    for task in experiment.tasks.all()
+                ]
                 for participant in models.Participant.objects.all()
-            ],
+            },
         }
         task_count_before = experiment.tasks.count()
         rating_count_before = experiment.ratings.count()
@@ -266,7 +263,7 @@ def test_post_experiment_detail_clear(staff_authenticated_client, experiments):
             "practiceTask": None,
             "tasks": [],
             "ratings": [],
-            "assignments": [],
+            "assignments": {},
         }
         response = staff_authenticated_client.post(
             f"/experiments/{experiment.id}", data, content_type="application/json"
@@ -298,7 +295,7 @@ def test_post_experiment_detail_missing_key(staff_authenticated_client, experime
             "practiceTask": None,
             "tasks": [],
             "ratings": [],
-            "assignments": [],
+            "assignments": {},
         }
         response = staff_authenticated_client.post(
             f"/experiments/{experiment.id}", data, content_type="application/json"
