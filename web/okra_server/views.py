@@ -143,24 +143,16 @@ class ExperimentDetail(View):
                         }
                         for rating in experiment.ratings.all()
                     ],
-                    "assignments": [
-                        {
-                            "participant": {
-                                "id": str(participant.id),
-                                "label": participant.label,
-                            },
-                            "tasks": [
-                                {
-                                    "id": str(assignment.task.id),
-                                    "started": assignment.started_time is not None,
-                                }
-                                for assignment in experiment.get_assignments(
-                                    participant
-                                )
-                            ],
-                        }
+                    "assignments": {
+                        str(participant.id): [
+                            {
+                                "id": str(assignment.task.id),
+                                "started": assignment.started_time is not None,
+                            }
+                            for assignment in experiment.get_assignments(participant)
+                        ]
                         for participant in models.Participant.objects.all()
-                    ],
+                    },
                 },
                 "task_type_choices": {
                     type_id: type_name for type_id, type_name in models.TaskType.choices
@@ -168,6 +160,10 @@ class ExperimentDetail(View):
                 "rating_type_choices": {
                     type_id: type_name
                     for type_id, type_name in models.TaskRatingType.choices
+                },
+                "participant_labels": {
+                    str(participant.id): participant.label
+                    for participant in models.Participant.objects.all()
                 },
             },
         )
@@ -215,19 +211,17 @@ class ExperimentDetail(View):
             for task in tasks_to_delete:
                 task.delete()
 
-            for assignment_data in data["assignments"]:
-                participant = models.Participant.objects.get(
-                    id=assignment_data["participant"]["id"]
-                )
+            for participant_id, assignments in data["assignments"].items():
+                participant = models.Participant.objects.get(id=participant_id)
                 experiment.get_assignments(participant).filter(
                     started_time__isnull=True
                 ).delete()
-                for task_data in assignment_data["tasks"]:
-                    if task_data["started"]:
+                for assignment in assignments:
+                    if assignment["started"]:
                         continue
                     models.TaskAssignment.objects.create(
                         participant=participant,
-                        task_id=task_data["id"],
+                        task_id=assignment["id"],
                     )
 
             experiment.ratings.all().delete()
