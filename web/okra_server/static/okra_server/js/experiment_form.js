@@ -5,9 +5,6 @@ Vue.component("experiment-form", {
         <div class="col">
           <h1>Experiment "{{ data.title }}"</h1>
         </div>
-        <div class="col-auto">
-          <input class="form-control" type="file" @change="loadFile">
-        </div>
       </div>
       <div class="input-group mb-2">
         <span class="input-group-text">ID</span>
@@ -52,14 +49,14 @@ Vue.component("experiment-form", {
       <section class="mb-2">
         <h2>Tasks</h2>
         <div class="accordion mb-2">
-          <div class="accordion-item" v-for="(task, i) in data.tasks" :key="'task-' + task.key">
+          <div class="accordion-item" v-for="(task, i) in data.tasks" :key="'task-' + task.id">
             <h3 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#task-collapse-' + task.key">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#task-collapse-' + task.id">
                 <button type="button" class="btn btn-outline-danger btn-sm me-2" @click="removeTask(i)"><i class="bi bi-trash-fill"></i></button>
                 {{ task.label }}
               </button>
             </h3>
-            <div class="accordion-collapse collapse hide" :id="'task-collapse-' + task.key">
+            <div class="accordion-collapse collapse hide" :id="'task-collapse-' + task.id">
               <div class="accordion-body">
                 <task v-model="data.tasks[i]"></task>
               </div>
@@ -71,14 +68,14 @@ Vue.component("experiment-form", {
       <section class="mb-2">
         <h2>Task ratings</h2>
         <div class="accordion mb-2">
-          <div class="accordion-item" v-for="(rating, i) in data.ratings" :key="'rating-' + rating.key">
+          <div class="accordion-item" v-for="(rating, i) in data.ratings" :key="'rating-' + rating.id">
             <h3 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#rating-collapse-' + rating.key">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#rating-collapse-' + rating.id">
                 <button type="button" class="btn btn-outline-danger btn-sm me-2" @click="removeRating(i)"><i class="bi bi-trash-fill"></i></button>
                 {{ rating.question }}
               </button>
             </h3>
-            <div class="accordion-collapse collapse hide" :id="'rating-collapse-' + rating.key">
+            <div class="accordion-collapse collapse hide" :id="'rating-collapse-' + rating.id">
               <div class="accordion-body">
                 <rating :rating-type-choices="ratingTypeChoices" v-model="data.ratings[i]"></rating>
               </div>
@@ -90,9 +87,9 @@ Vue.component("experiment-form", {
       <section>
         <h2>Assignments</h2>
         <ul class="list-group">
-          <li class="list-group-item" v-for="assignment in data.assignments" :key="'participant-' + assignment.participant">
-            <h3 class="h6">Participant: {{ assignment.participant }}</h3>
-            <task-assignments :tasks="data.tasks" v-model="assignment.tasks"></task-assignments>
+          <li class="list-group-item" v-for="(label, id) in participantLabels" :key="'participant-' + id">
+            <h3 class="h6">Participant: {{ label }} ({{ id }})</h3>
+            <task-assignments :tasks="data.tasks" v-model="data.assignments[id]"></task-assignments>
           </li>
         </ul>
       </section>
@@ -112,42 +109,24 @@ Vue.component("experiment-form", {
       type: Object,
       required: true,
     },
+    participantLabels: {
+      type: Object,
+      required: true,
+    },
   },
 
   data() {
     const data = { ...this.value };
     const hasPracticeTask = data.practiceTask !== null;
-    let taskKeyCounter = 0;
-    for (task of data.tasks) {
-      task.key = taskKeyCounter;
-      taskKeyCounter++;
-    }
-    let ratingKeyCounter = 0;
-    for (rating of data.ratings) {
-      rating.key = ratingKeyCounter;
-      ratingKeyCounter++;
-    }
+    let taskKeyCounter = data.tasks.length;
     return {
       data: { ...this.value },
       taskKeyCounter,
-      ratingKeyCounter,
       hasPracticeTask,
     };
   },
 
   methods: {
-    loadFile(event) {
-      const file = event.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const id = this.data.id;
-        this.data = JSON.parse(event.target.result);
-        this.data.id = id;
-        this.emitData();
-      };
-      reader.readAsText(file);
-    },
-
     addPracticeTask() {
       this.data.practiceTask = {
         id: uuidv4(),
@@ -165,7 +144,6 @@ Vue.component("experiment-form", {
     addTask() {
       this.data.tasks.push({
         id: uuidv4(),
-        key: this.taskKeyCounter,
         label: `task-${this.taskKeyCounter}`,
         data: {},
       });
@@ -181,13 +159,11 @@ Vue.component("experiment-form", {
     addRating() {
       this.data.ratings.push({
         id: uuidv4(),
-        key: this.ratingKeyCounter,
         question: "",
         type: "emoticon",
         lowExtreme: null,
         highExtreme: null,
       });
-      this.ratingKeyCounter++;
       this.emitData();
     },
 
@@ -392,7 +368,6 @@ Vue.component("task-assignments", {
 
     addTask() {
       const availableAssignment = this.getAvailableAssignment();
-      console.log(availableAssignment);
       if (availableAssignment !== null) {
         this.assignments.push(availableAssignment);
       }
@@ -405,7 +380,6 @@ Vue.component("task-assignments", {
       } else {
         this.assignments[index] = { id: value, started: false };
       }
-      console.log(this.assignments);
       this.emitData();
     },
 

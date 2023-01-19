@@ -26,6 +26,10 @@
         <i class="bi bi-plus me-2"></i>
         New experiment
     </a>
+    <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#upload-modal">
+        <i class="bi bi-upload me-2"></i>
+        Upload JSON
+    </button>
 
     <div class="modal fade" id="delete-modal">
         <div class="modal-dialog">
@@ -49,6 +53,26 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="upload-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload experiment as JSON</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="upload-form" action="{% url 'experiment-new' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="file" class="form-control mb-2" name="file" required>
+                        <button id="upload-submit" type="submit" class="btn btn-primary">
+                            Upload
+                        </button>
+                        <span id="upload-error" class="text-danger ms-2"></span>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         var deleteModal = document.getElementById("delete-modal");
@@ -56,6 +80,46 @@
             var experiment = event.relatedTarget.getAttribute("data-bs-experiment");
             deleteModal.querySelector(".modal-body .modal-experiment-id").textContent = experiment;
             deleteModal.querySelector(".modal-body form").setAttribute("action", "{% url 'experiment-delete' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", experiment));
+        });
+
+        document.getElementById("upload-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const submitButton = document.getElementById("upload-submit");
+            submitButton.disabled = true;
+            const originalSubmitButtonText = submitButton.textContent;
+            submitButton.textContent = "Uploading...";
+            function showError(message) {
+                document.getElementById("upload-error").textContent = `❌ ${message}`;
+                submitButton.disabled = false;
+                submitButton.textContent = originalSubmitButtonText;
+            }
+
+            const formData = new FormData(this);
+            const file = formData.get("file");
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                var data;
+                try {
+                    data = JSON.parse(event.target.result);
+                } catch (e) {
+                    showError(e);
+                    return;
+                }
+                axios
+                    .post(this.action, data, {
+                        headers: {
+                            "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
+                        },
+                    })
+                    .then((response) => {
+                        window.location.reload();
+                    })
+                    .catch((error) => {
+                        showError(error.response.data.message);
+                    });
+            };
+            reader.readAsText(file);
         });
     </script>
 {% endblock content %}

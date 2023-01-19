@@ -5,9 +5,8 @@
 {% block title %}Experiment: {{ data.title }}{% endblock title %}
 
 {% block head %}
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/uuid@8.3.2/dist/umd/uuidv4.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios@0.21.1/dist/axios.min.js"></script>
     <script src="{% static 'okra_server/js/experiment_form.js' %}"></script>
 {% endblock head %}
 
@@ -17,6 +16,7 @@
             class="mb-2"
             :task-type-choices="taskTypeChoices"
             :rating-type-choices="ratingTypeChoices"
+            :participant-labels="participantLabels"
             v-model="data">
         </experiment-form>
         <button type="button" class="btn btn-primary mb-2" v-on:click="submit()"><i class="bi bi-save me-2"></i>Save</button>
@@ -28,29 +28,31 @@
         const initialData = {{ data|to_js }};
         const taskTypeChoices = {{ task_type_choices|to_js }};
         const ratingTypeChoices = {{ rating_type_choices|to_js }};
+        const participantLabels = {{ participant_labels|to_js }};
 
         var app = new Vue({
-        el: "#app",
-        delimiters: ["[[", "]]"],
-        data: {
-            data: initialData,
-            taskTypeChoices,
-            ratingTypeChoices,
-            message: null,
-        },
-        methods: {
-            submit() {
-                axios
-                    .post("", this.data)
-                    .then((response) => {
-                        this.message = response.data.message;
-                        if (response.data.redirect !== undefined) {
-                            window.location.href = response.data.redirect;
-                        }
-                    })
-                    .catch((error) => {
-                        this.message = `❌ ${error.response.data.message}`;
-                    });
+            el: "#app",
+            delimiters: ["[[", "]]"],
+            data: {
+                data: initialData,
+                taskTypeChoices,
+                ratingTypeChoices,
+                participantLabels,
+                message: null,
+            },
+            methods: {
+                submit() {
+                    axios
+                        .post("", this.data)
+                        .then((response) => {
+                            this.message = response.data.message;
+                            if (response.data.redirect !== undefined) {
+                                window.location.href = response.data.redirect;
+                            }
+                        })
+                        .catch((error) => {
+                            this.message = `❌ ${error.response.data.message}`;
+                        });
                 },
             },
         });

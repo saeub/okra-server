@@ -4,7 +4,7 @@
 
 {% block content %}
     {% if user.is_authenticated %}
-        <h1>Progress report</h1>
+        <h1>Progress overview</h1>
         {% for experiment in experiments %}
             <div class="card mb-2">
                 <div class="card-body">
@@ -14,53 +14,24 @@
                             <h6 class="card-subtitle">{{ experiment.task_type }}</h6>
                         </div>
                         <div class="col-auto">
-                            <a class="btn btn-primary" href="{% url 'experiment-results' experiment.id %}?download">
-                                <i class="bi bi-download me-2"></i>
-                                Download results
+                            <a class="btn btn-primary stretched-link" href="{% url 'progress' experiment.id %}?download">
+                                <i class="bi bi-bar-chart-fill me-2"></i>
+                                Progress
                             </a>
                         </div>
                     </div>
+                    <div class="progress mt-2" style="height: 20px">
+                        <div class="progress-bar bg-success" style="width: {{ experiment.percent_tasks_finished }}%">
+                            {{ experiment.n_tasks_finished }} finished
+                        </div>
+                        <div class="progress-bar bg-danger" style="width: {{ experiment.percent_tasks_canceled }}%">
+                            {{ experiment.n_tasks_canceled }} canceled
+                        </div>
+                        <div class="progress-bar bg-warning" style="width: {{ experiment.percent_tasks_unfinished }}%">
+                            {{ experiment.n_tasks_unfinished }} unfinished
+                        </div>
+                    </div>
                 </div>
-                <ul class="list-group list-group-flush">
-                    {% for participant in experiment.participants %}
-                        {% if participant.n_tasks > 0 %}
-                            <li class="list-group-item">
-                                <div class="row">
-                                    <div class="col">
-                                        <h6>{{ participant.id }}</h6>
-                                    </div>
-                                    <div class="col-auto">
-                                        <a class="btn btn-primary" href="{% url 'experiment-results-graph' experiment.id participant.id %}">
-                                            <i class="bi bi-graph-up me-2"></i>
-                                            Results
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-auto text-center">
-                                        <small>Practice</small>
-                                        <br>
-                                        <strong>{{ participant.n_practice_tasks_finished }}</strong>
-                                    </div>
-                                    <div class="col">
-                                        <small>Tasks</small>
-                                        <div class="progress" style="height: 20px">
-                                            <div class="progress-bar bg-success" style="width: {{ participant.percent_tasks_finished }}%">
-                                                {{ participant.n_tasks_finished }} finished
-                                            </div>
-                                            <div class="progress-bar bg-danger" style="width: {{ participant.percent_tasks_canceled }}%">
-                                                {{ participant.n_tasks_canceled }} canceled
-                                            </div>
-                                            <div class="progress-bar bg-warning" style="width: {{ participant.percent_tasks_unfinished }}%">
-                                                {{ participant.n_tasks_unfinished }} unfinished
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
             </div>
         {% endfor %}
     {% endif %}
