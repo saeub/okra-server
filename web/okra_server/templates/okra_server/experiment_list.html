@@ -64,7 +64,7 @@
                     <form id="upload-form" action="{% url 'experiment-new' %}" method="POST">
                         {% csrf_token %}
                         <input type="file" class="form-control mb-2" name="file" required>
-                        <button type="submit" class="btn btn-primary">
+                        <button id="upload-submit" type="submit" class="btn btn-primary">
                             Upload
                         </button>
                         <span id="upload-error" class="text-danger ms-2"></span>
@@ -84,11 +84,28 @@
 
         document.getElementById("upload-form").addEventListener("submit", function(event) {
             event.preventDefault();
-            var formData = new FormData(this);
+
+            const submitButton = document.getElementById("upload-submit");
+            submitButton.disabled = true;
+            const originalSubmitButtonText = submitButton.textContent;
+            submitButton.textContent = "Uploading...";
+            function showError(message) {
+                document.getElementById("upload-error").textContent = `❌ ${message}`;
+                submitButton.disabled = false;
+                submitButton.textContent = originalSubmitButtonText;
+            }
+
+            const formData = new FormData(this);
             const file = formData.get("file");
             const reader = new FileReader();
             reader.onload = (event) => {
-                const data = JSON.parse(event.target.result);
+                var data;
+                try {
+                    data = JSON.parse(event.target.result);
+                } catch (e) {
+                    showError(e);
+                    return;
+                }
                 axios
                     .post(this.action, data, {
                         headers: {
@@ -99,7 +116,7 @@
                         window.location.reload();
                     })
                     .catch((error) => {
-                        document.getElementById("upload-error").textContent = `❌ ${error.response.data.message}`;
+                        showError(error.response.data.message);
                     });
             };
             reader.readAsText(file);
