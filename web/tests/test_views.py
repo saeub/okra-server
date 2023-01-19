@@ -341,6 +341,15 @@ def test_get_participant_list_authenticated(
     assert response.content.decode().count('data-bs-target="#delete-modal"') == 2
 
 
+def test_post_label_participant(staff_authenticated_client, unregistered_participant):
+    assert unregistered_participant.label == "unlabeled"
+    staff_authenticated_client.post(
+        f"/participants/{unregistered_participant.id}/label", {"label": "new label"}
+    )
+    unregistered_participant.refresh_from_db()
+    assert unregistered_participant.label == "new label"
+
+
 def test_post_unregister_participant(
     staff_authenticated_client, registered_participant
 ):
