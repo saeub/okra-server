@@ -57,9 +57,10 @@ def public_urls(unregistered_participant):
 
 
 @pytest.fixture
-def private_urls():
+def private_urls(experiments):
     return [
         "/participants",
+        f"/progress/{experiments[0].id}",
     ]
 
 
@@ -139,17 +140,22 @@ def test_get_index(client, experiments, registered_participant):
     assert response.content.decode().count(str(registered_participant.id)) == 0
 
 
-def test_get_index_authenticated(
-    staff_authenticated_client, experiments, registered_participant
-):
+def test_get_index_authenticated(staff_authenticated_client, experiments):
     response = staff_authenticated_client.get("/")
     assert response.status_code == 200, response.content
     for experiment in experiments:
         assert str(experiment.id) in response.content.decode()
+
+
+def test_get_progress_authenticated(
+    staff_authenticated_client, experiments, registered_participant
+):
+    response = staff_authenticated_client.get(f"/progress/{experiments[0].id}")
+    assert response.status_code == 200, response.content
+    assert str(experiments[0].id) in response.content.decode()
     assert (
-        response.content.decode().count(str(registered_participant.id))
-        == len(experiments) * 2
-    )  # Two occurrences per experiment: once as a heading, once as a button
+        response.content.decode().count(str(registered_participant.id)) == 2
+    )  # Two occurrences: once as a heading, once as a button
 
 
 def test_get_experiment_list(staff_authenticated_client, experiments):
