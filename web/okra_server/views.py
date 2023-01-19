@@ -214,16 +214,29 @@ class ExperimentDetail(View):
                 task.delete()
 
             for participant_id, assignments in data["assignments"].items():
-                participant = models.Participant.objects.get(id=participant_id)
+                try:
+                    participant_id = uuid.UUID(participant_id)
+                    participant = models.Participant.objects.get(id=participant_id)
+                except (models.Participant.DoesNotExist, ValueError):
+                    participant = models.Participant.objects.get(label=participant_id)
                 experiment.get_assignments(participant).filter(
                     started_time__isnull=True
                 ).delete()
                 for assignment in assignments:
-                    if assignment["started"]:
+                    if "id" in assignment:
+                        task = models.Task.objects.get(id=assignment["id"])
+                    elif "label" in assignment:
+                        task = models.Task.objects.get(label=assignment["label"])
+                    else:
+                        return JsonResponse(
+                            {"message": "Missing task ID or label"},
+                            status=400,
+                        )
+                    if assignment.get("started", False):
                         continue
                     models.TaskAssignment.objects.create(
                         participant=participant,
-                        task_id=assignment["id"],
+                        task=task,
                     )
 
             experiment.ratings.all().delete()

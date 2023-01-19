@@ -285,7 +285,9 @@ def test_post_experiment_detail_clear(staff_authenticated_client, experiments):
             assert experiment.get_assignments(participant).count() == 0
 
 
-def test_post_experiment_detail_new_with_ids(staff_authenticated_client):
+def test_post_experiment_detail_new_with_ids(
+    staff_authenticated_client, unregistered_participant, registered_participant
+):
     experiment_id = uuid4()
     practice_task_id = uuid4()
     task_id = uuid4()
@@ -319,7 +321,14 @@ def test_post_experiment_detail_new_with_ids(staff_authenticated_client):
                 "highExtreme": "test high extreme",
             },
         ],
-        "assignments": {},
+        "assignments": {
+            str(unregistered_participant.id): [
+                {"id": task_id},
+            ],
+            str(registered_participant.id): [
+                {"id": task_id},
+            ],
+        },
     }
     response = staff_authenticated_client.post(
         "/experiments/new", data, content_type="application/json"
@@ -354,8 +363,23 @@ def test_post_experiment_detail_new_with_ids(staff_authenticated_client):
     assert rating.low_extreme == "test low extreme"
     assert rating.high_extreme == "test high extreme"
 
+    assert (
+        experiment.get_assignments(unregistered_participant).get(task=task).started_time
+        is None
+    )
+    assert (
+        experiment.get_assignments(registered_participant).get(task=task).started_time
+        is None
+    )
 
-def test_post_experiment_detail_new_without_ids(staff_authenticated_client):
+
+def test_post_experiment_detail_new_without_ids(
+    staff_authenticated_client, unregistered_participant, registered_participant
+):
+    unregistered_participant.label = "test participant 1"
+    unregistered_participant.save()
+    registered_participant.label = "test participant 2"
+    registered_participant.save()
     data = {
         "taskType": "reading",
         "title": "test title",
@@ -381,7 +405,14 @@ def test_post_experiment_detail_new_without_ids(staff_authenticated_client):
                 "highExtreme": "test high extreme",
             },
         ],
-        "assignments": {},
+        "assignments": {
+            str(unregistered_participant.label): [
+                {"label": "test task"},
+            ],
+            str(registered_participant.label): [
+                {"label": "test task"},
+            ],
+        },
     }
     response = staff_authenticated_client.post(
         "/experiments/new", data, content_type="application/json"
