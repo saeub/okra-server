@@ -224,9 +224,9 @@ class ExperimentDetail(View):
                 ).delete()
                 for assignment in assignments:
                     if "id" in assignment:
-                        task = models.Task.objects.get(id=assignment["id"])
+                        task = experiment.tasks.get(id=assignment["id"])
                     elif "label" in assignment:
-                        task = models.Task.objects.get(label=assignment["label"])
+                        task = experiment.tasks.get(label=assignment["label"])
                     else:
                         return JsonResponse(
                             {"message": "Missing task ID or label"},
