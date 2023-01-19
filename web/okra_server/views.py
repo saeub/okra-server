@@ -169,10 +169,11 @@ class ExperimentDetail(View):
         )
 
     def post(self, request, experiment_id=None):
-        try:
-            experiment = self._get_experiment(experiment_id)
-            data = json.loads(request.body)
+        data = json.loads(request.body)
+        experiment_id = experiment_id or data.get("id")
+        experiment = self._get_experiment(experiment_id)
 
+        try:
             experiment.task_type = data["taskType"]
             experiment.title = data["title"]
             experiment.instructions = data["instructions"]
@@ -187,12 +188,13 @@ class ExperimentDetail(View):
             practice_task_data = data["practiceTask"]
             if experiment.practice_task is not None and (
                 practice_task_data is None
+                or "id" not in practice_task_data
                 or experiment.practice_task.id != uuid.UUID(practice_task_data["id"])
             ):
                 experiment.practice_task.delete()
                 experiment.practice_task = None
             if practice_task_data is not None:
-                experiment.practice_task = self._get_task(practice_task_data["id"])
+                experiment.practice_task = self._get_task(practice_task_data.get("id"))
                 experiment.practice_task.label = practice_task_data["label"]
                 experiment.practice_task.data = practice_task_data["data"]
                 experiment.practice_task.save()
@@ -201,7 +203,7 @@ class ExperimentDetail(View):
 
             tasks_to_delete = set(experiment.tasks.all())
             for task_data in data["tasks"]:
-                task = self._get_task(task_data["id"])
+                task = self._get_task(task_data.get("id"))
                 if task in tasks_to_delete:
                     tasks_to_delete.remove(task)
                 task.experiment = experiment
@@ -226,7 +228,7 @@ class ExperimentDetail(View):
 
             experiment.ratings.all().delete()
             for rating_data in data["ratings"]:
-                rating = self._get_rating(rating_data["id"])
+                rating = self._get_rating(rating_data.get("id"))
                 rating.experiment = experiment
                 rating.question = rating_data["question"]
                 rating.rating_type = rating_data["type"]
@@ -252,23 +254,32 @@ class ExperimentDetail(View):
     @staticmethod
     def _get_experiment(experiment_id) -> models.Experiment:
         if experiment_id is not None:
-            return models.Experiment.objects.get(id=experiment_id)
+            try:
+                return models.Experiment.objects.get(id=experiment_id)
+            except models.Experiment.DoesNotExist:
+                return models.Experiment(id=experiment_id)
         else:
             return models.Experiment()
 
     @staticmethod
     def _get_task(task_id) -> models.Task:
-        try:
-            return models.Task.objects.get(id=task_id)
-        except models.Task.DoesNotExist:
-            return models.Task(id=task_id)
+        if task_id is not None:
+            try:
+                return models.Task.objects.get(id=task_id)
+            except models.Task.DoesNotExist:
+                return models.Task(id=task_id)
+        else:
+            return models.Task()
 
     @staticmethod
     def _get_rating(rating_id) -> models.TaskRating:
-        try:
-            return models.TaskRating.objects.get(id=rating_id)
-        except models.TaskRating.DoesNotExist:
-            return models.TaskRating(id=rating_id)
+        if rating_id is not None:
+            try:
+                return models.TaskRating.objects.get(id=rating_id)
+            except models.TaskRating.DoesNotExist:
+                return models.TaskRating(id=rating_id)
+        else:
+            return models.TaskRating()
 
 
 def experiment_results(request, experiment_id):

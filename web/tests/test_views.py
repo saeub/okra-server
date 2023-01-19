@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pytest
 from django.template.defaultfilters import escapejs
 
@@ -281,6 +283,137 @@ def test_post_experiment_detail_clear(staff_authenticated_client, experiments):
         assert experiment.ratings.count() == 0
         for participant in models.Participant.objects.all():
             assert experiment.get_assignments(participant).count() == 0
+
+
+def test_post_experiment_detail_new_with_ids(staff_authenticated_client):
+    experiment_id = uuid4()
+    practice_task_id = uuid4()
+    task_id = uuid4()
+    rating_id = uuid4()
+    data = {
+        "id": experiment_id,
+        "taskType": "reading",
+        "title": "test title",
+        "instructions": "test instructions",
+        "instructionsAfterTask": "test instructions after task",
+        "instructionsAfterPracticeTask": "test instructions after practice task",
+        "instructionsAfterFinalTask": "test instructions after final task",
+        "practiceTask": {
+            "id": practice_task_id,
+            "label": "test practice task",
+            "data": {"test": "practice data"},
+        },
+        "tasks": [
+            {
+                "id": task_id,
+                "label": "test task",
+                "data": {"test": "data"},
+            },
+        ],
+        "ratings": [
+            {
+                "id": rating_id,
+                "question": "test rating",
+                "type": "emoticon",
+                "lowExtreme": "test low extreme",
+                "highExtreme": "test high extreme",
+            },
+        ],
+        "assignments": {},
+    }
+    response = staff_authenticated_client.post(
+        "/experiments/new", data, content_type="application/json"
+    )
+    assert response.status_code == 200, response.content
+
+    experiment = models.Experiment.objects.get(id=experiment_id)
+    assert experiment.task_type == "reading"
+    assert experiment.title == "test title"
+    assert experiment.instructions == "test instructions"
+    assert (
+        experiment.instructions_after_practice_task
+        == "test instructions after practice task"
+    )
+    assert experiment.instructions_after_task == "test instructions after task"
+    assert (
+        experiment.instructions_after_final_task == "test instructions after final task"
+    )
+
+    practice_task = experiment.practice_task
+    assert practice_task.id == practice_task_id
+    assert practice_task.label == "test practice task"
+    assert practice_task.data == {"test": "practice data"}
+
+    task = experiment.tasks.get(id=task_id)
+    assert task.label == "test task"
+    assert task.data == {"test": "data"}
+
+    rating = experiment.ratings.get(id=rating_id)
+    assert rating.question == "test rating"
+    assert rating.rating_type == "emoticon"
+    assert rating.low_extreme == "test low extreme"
+    assert rating.high_extreme == "test high extreme"
+
+
+def test_post_experiment_detail_new_without_ids(staff_authenticated_client):
+    data = {
+        "taskType": "reading",
+        "title": "test title",
+        "instructions": "test instructions",
+        "instructionsAfterTask": "test instructions after task",
+        "instructionsAfterPracticeTask": "test instructions after practice task",
+        "instructionsAfterFinalTask": "test instructions after final task",
+        "practiceTask": {
+            "label": "test practice task",
+            "data": {"test": "practice data"},
+        },
+        "tasks": [
+            {
+                "label": "test task",
+                "data": {"test": "data"},
+            },
+        ],
+        "ratings": [
+            {
+                "question": "test rating",
+                "type": "emoticon",
+                "lowExtreme": "test low extreme",
+                "highExtreme": "test high extreme",
+            },
+        ],
+        "assignments": {},
+    }
+    response = staff_authenticated_client.post(
+        "/experiments/new", data, content_type="application/json"
+    )
+    assert response.status_code == 200, response.content
+
+    experiment = models.Experiment.objects.get(title="test title")
+    assert experiment.task_type == "reading"
+    assert experiment.title == "test title"
+    assert experiment.instructions == "test instructions"
+    assert (
+        experiment.instructions_after_practice_task
+        == "test instructions after practice task"
+    )
+    assert experiment.instructions_after_task == "test instructions after task"
+    assert (
+        experiment.instructions_after_final_task == "test instructions after final task"
+    )
+
+    practice_task = experiment.practice_task
+    assert practice_task.label == "test practice task"
+    assert practice_task.data == {"test": "practice data"}
+
+    task = experiment.tasks.get(label="test task")
+    assert task.label == "test task"
+    assert task.data == {"test": "data"}
+
+    rating = experiment.ratings.get(question="test rating")
+    assert rating.question == "test rating"
+    assert rating.rating_type == "emoticon"
+    assert rating.low_extreme == "test low extreme"
+    assert rating.high_extreme == "test high extreme"
 
 
 def test_post_experiment_detail_missing_key(staff_authenticated_client, experiments):
