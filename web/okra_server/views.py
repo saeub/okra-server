@@ -25,47 +25,87 @@ def index(request):
     participants = models.Participant.objects.all()
     experiments_data = []
     for experiment in models.Experiment.objects.all():
-        participants_data = []
+        n_tasks = 0
+        n_tasks_unfinished = 0
+        n_tasks_finished = 0
+        n_tasks_canceled = 0
         for participant in participants:
-            n_tasks = experiment.get_n_tasks(participant)
-            n_tasks_unfinished = experiment.get_n_tasks(
+            n_tasks += experiment.get_n_tasks(participant)
+            n_tasks_unfinished += experiment.get_n_tasks(
                 participant, started=True, finished=False, canceled=False
             )
-            n_tasks_finished = experiment.get_n_tasks(
+            n_tasks_finished += experiment.get_n_tasks(
                 participant, started=True, finished=True, canceled=False
             )
-            n_tasks_canceled = experiment.get_n_tasks(
+            n_tasks_canceled += experiment.get_n_tasks(
                 participant, started=True, finished=True, canceled=True
-            )
-            participants_data.append(
-                {
-                    "id": str(participant.id),
-                    "n_practice_tasks_finished": experiment.get_n_tasks(
-                        participant, practice=True, finished=True, canceled=False
-                    ),
-                    "n_tasks": n_tasks,
-                    "n_tasks_unfinished": n_tasks_unfinished,
-                    "percent_tasks_unfinished": n_tasks_unfinished
-                    / (n_tasks or 1)
-                    * 100,
-                    "n_tasks_finished": n_tasks_finished,
-                    "percent_tasks_finished": n_tasks_finished / (n_tasks or 1) * 100,
-                    "n_tasks_canceled": n_tasks_canceled,
-                    "percent_tasks_canceled": n_tasks_canceled / (n_tasks or 1) * 100,
-                }
             )
         experiments_data.append(
             {
                 "id": str(experiment.id),
                 "title": experiment.title,
                 "task_type": dict(models.TaskType.choices)[experiment.task_type],
-                "participants": participants_data,
+                "n_practice_tasks_finished": experiment.get_n_tasks(
+                    participant, practice=True, finished=True, canceled=False
+                ),
+                "n_tasks": n_tasks,
+                "n_tasks_unfinished": n_tasks_unfinished,
+                "percent_tasks_unfinished": n_tasks_unfinished / (n_tasks or 1) * 100,
+                "n_tasks_finished": n_tasks_finished,
+                "percent_tasks_finished": n_tasks_finished / (n_tasks or 1) * 100,
+                "n_tasks_canceled": n_tasks_canceled,
+                "percent_tasks_canceled": n_tasks_canceled / (n_tasks or 1) * 100,
             }
         )
     return render(
         request,
         "okra_server/index.html",
         {"experiments": experiments_data},
+    )
+
+
+def progress(request, experiment_id):
+    participants = models.Participant.objects.all()
+    participants_data = []
+    experiment = models.Experiment.objects.get(id=experiment_id)
+    for participant in participants:
+        n_tasks = experiment.get_n_tasks(participant)
+        n_tasks_unfinished = experiment.get_n_tasks(
+            participant, started=True, finished=False, canceled=False
+        )
+        n_tasks_finished = experiment.get_n_tasks(
+            participant, started=True, finished=True, canceled=False
+        )
+        n_tasks_canceled = experiment.get_n_tasks(
+            participant, started=True, finished=True, canceled=True
+        )
+        participants_data.append(
+            {
+                "id": str(participant.id),
+                "label": participant.label,
+                "n_practice_tasks_finished": experiment.get_n_tasks(
+                    participant, practice=True, finished=True, canceled=False
+                ),
+                "n_tasks": n_tasks,
+                "n_tasks_unfinished": n_tasks_unfinished,
+                "percent_tasks_unfinished": n_tasks_unfinished / (n_tasks or 1) * 100,
+                "n_tasks_finished": n_tasks_finished,
+                "percent_tasks_finished": n_tasks_finished / (n_tasks or 1) * 100,
+                "n_tasks_canceled": n_tasks_canceled,
+                "percent_tasks_canceled": n_tasks_canceled / (n_tasks or 1) * 100,
+            }
+        )
+    return render(
+        request,
+        "okra_server/progress.html",
+        {
+            "experiment": {
+                "id": str(experiment.id),
+                "title": experiment.title,
+                "task_type": dict(models.TaskType.choices)[experiment.task_type],
+            },
+            "participants": participants_data,
+        },
     )
 
 

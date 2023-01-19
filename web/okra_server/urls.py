@@ -17,6 +17,11 @@ urlpatterns = [
     path("logout", views.logout, name="logout"),
     path("", views.index, name="index"),
     path(
+        "progress/<uuid:experiment_id>",
+        login_required(views.progress),
+        name="progress",
+    ),
+    path(
         "registration/<participant_id>",
         views.registration_detail,
         name="registration-detail",
