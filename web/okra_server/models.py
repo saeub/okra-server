@@ -27,6 +27,9 @@ class Participant(models.Model):
         max_length=24, null=True, default=new_registration_key
     )
 
+    class Meta:
+        ordering = ["label"]
+
     def __str__(self):
         registered = self.device_key is not None
         return (
