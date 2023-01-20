@@ -60,14 +60,14 @@ def public_urls(unregistered_participant):
 def private_urls(experiments):
     return [
         "/participants",
+        "/experiments",
         f"/progress/{experiments[0].id}",
     ]
 
 
 @pytest.fixture
-def admin_urls(experiments, registered_participant):
+def staff_urls(experiments, registered_participant):
     return [
-        "/experiments",
         "/experiments/new",
         f"/experiments/{experiments[0].id}",
         f"/experiments/{experiments[0].id}/results",
@@ -91,7 +91,7 @@ def test_get_registration_detail_already_registered(
     assert "already registered" in response.content.decode()
 
 
-def test_unauthenticated(client, public_urls, private_urls, admin_urls):
+def test_unauthenticated(client, public_urls, private_urls, staff_urls):
     for url in public_urls:
         response = client.get(url)
         assert response.status_code == 200, url
@@ -99,27 +99,27 @@ def test_unauthenticated(client, public_urls, private_urls, admin_urls):
         response = client.get(url)
         assert response.status_code == 302, url
         assert response.url == f"/login?next={url.replace('?', '%3F')}"
-    for url in admin_urls:
+    for url in staff_urls:
         response = client.get(url)
         assert response.status_code == 302, url
         assert response.url == f"/login?next={url.replace('?', '%3F')}"
 
 
-def test_authenticated(authenticated_client, public_urls, private_urls, admin_urls):
+def test_authenticated(authenticated_client, public_urls, private_urls, staff_urls):
     for url in public_urls:
         response = authenticated_client.get(url)
         assert response.status_code == 200, url
     for url in private_urls:
         response = authenticated_client.get(url)
         assert response.status_code == 200, url
-    for url in admin_urls:
+    for url in staff_urls:
         response = authenticated_client.get(url)
         assert response.status_code == 302, url
         assert response.url == f"/login?next={url.replace('?', '%3F')}"
 
 
 def test_authenticated_staff(
-    staff_authenticated_client, public_urls, private_urls, admin_urls
+    staff_authenticated_client, public_urls, private_urls, staff_urls
 ):
     for url in public_urls:
         response = staff_authenticated_client.get(url)
@@ -127,7 +127,7 @@ def test_authenticated_staff(
     for url in private_urls:
         response = staff_authenticated_client.get(url)
         assert response.status_code == 200, url
-    for url in admin_urls:
+    for url in staff_urls:
         response = staff_authenticated_client.get(url)
         assert response.status_code == 200, url
 

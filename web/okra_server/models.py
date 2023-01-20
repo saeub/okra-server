@@ -126,7 +126,7 @@ class Experiment(models.Model):
     def is_available(self, participant: Participant) -> bool:
         if not self.active:
             return False
-        for experiment in self.required_experiments:
+        for experiment in self.required_experiments.all():
             if experiment.get_n_tasks(
                 participant, started=True
             ) < experiment.get_n_tasks(participant):

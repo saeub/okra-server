@@ -28,7 +28,7 @@ urlpatterns = [
     ),
     path(
         "experiments",
-        staff_required(views.ExperimentList.as_view()),
+        login_required(views.ExperimentList.as_view()),
         name="experiment-list",
     ),
     path(

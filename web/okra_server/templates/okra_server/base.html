@@ -26,11 +26,9 @@
                             <li class="nav-item">
                                 <a class="nav-link {% if request.resolver_match.url_name == 'participant-list' %}active{% endif %}" href="{% url 'participant-list' %}">Participants</a>
                             </li>
-                            {% if user.is_staff %}
-                                <li class="nav-item">
-                                    <a class="nav-link {% if request.resolver_match.url_name == 'experiment-list' %}active{% endif %}" href="{% url 'experiment-list' %}">Experiments</a>
-                                </li>
-                            {% endif %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.resolver_match.url_name == 'experiment-list' %}active{% endif %}" href="{% url 'experiment-list' %}">Experiments</a>
+                            </li>
                         {% endif %}
                     </ul>
                     {% if user.is_authenticated %}
