@@ -52,6 +52,16 @@ urlpatterns = [
         name="experiment-results-graph",
     ),
     path(
+        "experiments/<uuid:experiment_id>/activate",
+        staff_required(views.activate_experiment),
+        name="experiment-activate",
+    ),
+    path(
+        "experiments/<uuid:experiment_id>/deactivate",
+        staff_required(views.deactivate_experiment),
+        name="experiment-deactivate",
+    ),
+    path(
         "experiments/<uuid:experiment_id>/delete",
         staff_required(views.delete_experiment),
         name="experiment-delete",

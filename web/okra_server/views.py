@@ -435,6 +435,22 @@ def experiment_results_graph(request, experiment_id, participant_id):
 
 
 @require_POST
+def activate_experiment(request, experiment_id):
+    experiment = models.Experiment.objects.get(id=experiment_id)
+    experiment.active = True
+    experiment.save()
+    return HttpResponse(status=200)
+
+
+@require_POST
+def deactivate_experiment(request, experiment_id):
+    experiment = models.Experiment.objects.get(id=experiment_id)
+    experiment.active = False
+    experiment.save()
+    return HttpResponse(status=200)
+
+
+@require_POST
 def delete_experiment(request, experiment_id):
     experiment = models.Experiment.objects.get(id=experiment_id)
     experiment.delete()

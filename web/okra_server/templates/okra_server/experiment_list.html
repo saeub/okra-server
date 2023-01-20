@@ -14,6 +14,10 @@
                         </a>
                     </div>
                     <div class="col-auto">
+                        <div class="form-check form-switch d-inline-block me-4">
+                            <input type="checkbox" class="form-check-input" id="active-check-{{ experiment.id }}" onclick="updateActiveCheck('{{ experiment.id }}')" {% if experiment.active %}checked{% endif %}>
+                            <label class="form-check-label" for="active-check-{{ experiment.id }}">{% if experiment.active %}Active{% else %}Inactive{% endif %}</label>
+                        </div>
                         <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#delete-modal" data-bs-experiment="{{ experiment.id }}">
                             Delete
                         </button>
@@ -109,7 +113,7 @@
                 axios
                     .post(this.action, data, {
                         headers: {
-                            "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
+                            "X-CSRFToken": "{{ csrf_token }}",
                         },
                     })
                     .then((response) => {
@@ -121,5 +125,32 @@
             };
             reader.readAsText(file);
         });
+
+        function updateActiveCheck(experimentId) {
+            const activeCheck = document.getElementById(`active-check-${experimentId}`);
+            const active = activeCheck.checked;
+            if (active) {
+                axios
+                    .post("{% url 'experiment-activate' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", experimentId), null, {
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                        },
+                    })
+                    .then((response) => {
+                        window.location.reload();
+                    });
+            } else {
+                axios
+                    .post("{% url 'experiment-deactivate' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", experimentId), null, {
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                        },
+                    })
+                    .then((response) => {
+                        window.location.reload();
+                    });
+            }
+            activeCheck.parentElement.querySelector("label").textContent = active ? "Active" : "Inactive";
+        }
     </script>
 {% endblock content %}
