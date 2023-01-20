@@ -2,7 +2,7 @@ import random
 import string
 import uuid
 from functools import partial
-from typing import Iterable, Optional
+from typing import Optional
 
 from django.db import models
 from django.utils import timezone
@@ -37,7 +37,7 @@ class Participant(models.Model):
         )
 
     @property
-    def experiments(self) -> models.QuerySet:
+    def experiments(self) -> models.QuerySet["Experiment"]:
         experiments = Experiment.objects.filter(
             tasks__assignments__participant=self,
         ).distinct()
@@ -80,13 +80,17 @@ class Experiment(models.Model):
         on_delete=models.SET_NULL,
         related_name="practice_experiment",
     )
+    required_experiments = models.ManyToManyField(
+        "self",
+        related_name="requiring_experiments",
+    )
 
     def __str__(self):
         return f'Experiment "{self.title}" ({self.task_type})'
 
     def get_assignments(
         self, participant: Participant, practice: bool = False
-    ) -> Iterable["TaskAssignment"]:
+    ) -> models.QuerySet["TaskAssignment"]:
         if practice:
             assignments = TaskAssignment.objects.filter(
                 task=self.practice_task,
@@ -117,6 +121,14 @@ class Experiment(models.Model):
             assignments = assignments.filter(canceled=canceled)
 
         return assignments.count()
+
+    def is_available(self, participant: Participant) -> bool:
+        for experiment in self.required_experiments:
+            if experiment.get_n_tasks(
+                participant, started=True
+            ) < experiment.get_n_tasks(participant):
+                return False
+        return True
 
     def start_task(self, participant: Participant, practice: bool = False) -> "Task":
         # Cancel previously started and unfinished assignments

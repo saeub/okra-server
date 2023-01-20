@@ -166,6 +166,7 @@ def get_experiments(data: dict, participant: models.Participant):
             "experiments": [
                 _serialize_experiment(experiment, participant)
                 for experiment in participant.experiments
+                if experiment.is_available(participant)
             ],
         }
     )
@@ -175,6 +176,8 @@ def get_experiments(data: dict, participant: models.Participant):
 def get_experiment(data: dict, experiment_id: str, participant: models.Participant):
     try:
         experiment = participant.experiments.get(id=experiment_id)
+        if not experiment.is_available(participant):
+            return NOT_FOUND_RESPONSE
     except models.Experiment.DoesNotExist:
         return NOT_FOUND_RESPONSE
     return JsonResponse(_serialize_experiment(experiment, participant))
@@ -186,6 +189,8 @@ def start_task(
 ):
     try:
         experiment = participant.experiments.get(id=experiment_id)
+        if not experiment.is_available(participant):
+            return NOT_FOUND_RESPONSE
     except models.Experiment.DoesNotExist:
         return NOT_FOUND_RESPONSE
     try:

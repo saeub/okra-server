@@ -85,6 +85,12 @@ Vue.component("experiment-form", {
         <button type="button" class="btn btn-outline-primary" value="Add rating" @click="addRating()"><i class="bi bi-plus"></i></button>
       </section>
       <section>
+        <h2>Required experiments</h2>
+        <select class="form-select mb-2" v-model="data.requirements" @input="emitData()" multiple>
+          <option v-for="(title, id) in experimentTitles" :value="id">{{ title }} ({{ id }})</option>
+        </select>
+      </section>
+      <section>
         <h2>Assignments</h2>
         <ul class="list-group">
           <li class="list-group-item" v-for="(label, id) in participantLabels" :key="'participant-' + id">
@@ -106,6 +112,10 @@ Vue.component("experiment-form", {
       required: true,
     },
     ratingTypeChoices: {
+      type: Object,
+      required: true,
+    },
+    experimentTitles: {
       type: Object,
       required: true,
     },

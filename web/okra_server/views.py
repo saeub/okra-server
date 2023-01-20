@@ -183,6 +183,11 @@ class ExperimentDetail(View):
                         }
                         for rating in experiment.ratings.all()
                     ],
+                    "requirements": [
+                        str(required_experiment.id)
+                        for required_experiment in experiment.required_experiments.all()
+                        if required_experiment != experiment
+                    ],
                     "assignments": {
                         str(participant.id): [
                             {
@@ -200,6 +205,10 @@ class ExperimentDetail(View):
                 "rating_type_choices": {
                     type_id: type_name
                     for type_id, type_name in models.TaskRatingType.choices
+                },
+                "experiment_titles": {
+                    str(experiment.id): experiment.title
+                    for experiment in models.Experiment.objects.all()
                 },
                 "participant_labels": {
                     str(participant.id): participant.label
@@ -252,6 +261,8 @@ class ExperimentDetail(View):
                 task.save()
             for task in tasks_to_delete:
                 task.delete()
+
+            experiment.required_experiments.set(data.get("requirements", []))
 
             for participant_id, assignments in data["assignments"].items():
                 try:
