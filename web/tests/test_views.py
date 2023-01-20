@@ -496,7 +496,7 @@ def test_get_participant_list(
     assert response.status_code == 200, response.content
     assert str(unregistered_participant.id) in response.content.decode()
     assert str(registered_participant.id) in response.content.decode()
-    assert response.content.decode().count("Unregister") == 0
+    assert response.content.decode().count("Unregister") == 2
     assert response.content.decode().count("Delete") == 0
 
 

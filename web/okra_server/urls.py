@@ -83,7 +83,7 @@ urlpatterns = [
     ),
     path(
         "participants/<uuid:participant_id>/unregister",
-        staff_required(views.unregister_participant),
+        login_required(views.unregister_participant),
         name="participant-unregister",
     ),
     path(
