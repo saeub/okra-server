@@ -15,8 +15,8 @@
                     </div>
                     <div class="col-auto">
                         <div class="form-check form-switch d-inline-block">
-                            <input type="checkbox" class="form-check-input" id="active-check-{{ experiment.id }}" onclick="updateActiveCheck('{{ experiment.id }}')" {% if experiment.active %}checked{% endif %}>
-                            <label class="form-check-label" for="active-check-{{ experiment.id }}">{% if experiment.active %}Active{% else %}Inactive{% endif %}</label>
+                            <input type="checkbox" class="form-check-input" id="visible-check-{{ experiment.id }}" onclick="updateVisibleCheck('{{ experiment.id }}')" {% if experiment.visible %}checked{% endif %}>
+                            <label class="form-check-label" for="visible-check-{{ experiment.id }}">{% if experiment.visible %}Visible{% else %}Invisible{% endif %}</label>
                         </div>
                         {% if user.is_staff %}
                             <button type="button" class="btn btn-danger ms-4" data-bs-toggle="modal" data-bs-target="#delete-modal" data-bs-experiment="{{ experiment.id }}">
@@ -132,10 +132,10 @@
     {% endif %}
 
     <script>
-        function updateActiveCheck(experimentId) {
-            const activeCheck = document.getElementById(`active-check-${experimentId}`);
-            const active = activeCheck.checked;
-            if (active) {
+        function updateVisibleCheck(experimentId) {
+            const visibleCheck = document.getElementById(`visible-check-${experimentId}`);
+            const visible = visibleCheck.checked;
+            if (visible) {
                 axios
                     .post("{% url 'experiment-activate' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", experimentId), null, {
                         headers: {
@@ -156,7 +156,7 @@
                         window.location.reload();
                     });
             }
-            activeCheck.parentElement.querySelector("label").textContent = active ? "Active" : "Inactive";
+            visibleCheck.parentElement.querySelector("label").textContent = visible ? "Visible" : "Invisible";
         }
     </script>
 {% endblock content %}

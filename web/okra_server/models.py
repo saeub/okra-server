@@ -84,7 +84,7 @@ class Experiment(models.Model):
         "self",
         related_name="requiring_experiments",
     )
-    active = models.BooleanField(default=False)
+    visible = models.BooleanField(default=False)
 
     def __str__(self):
         return f'Experiment "{self.title}" ({self.task_type})'
@@ -124,7 +124,7 @@ class Experiment(models.Model):
         return assignments.count()
 
     def is_available(self, participant: Participant) -> bool:
-        if not self.active:
+        if not self.visible:
             return False
         for experiment in self.required_experiments.all():
             if experiment.get_n_tasks(

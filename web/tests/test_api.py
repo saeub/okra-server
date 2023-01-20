@@ -15,7 +15,7 @@ def experiment(registered_participant):
         instructions_after_task="You've completed the task.",
         instructions_after_practice_task="You've completed the practice task.",
         practice_task=pt,
-        active=True,
+        visible=True,
     )
     t = Task.objects.create(
         experiment=e,

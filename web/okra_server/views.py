@@ -437,7 +437,7 @@ def experiment_results_graph(request, experiment_id, participant_id):
 @require_POST
 def activate_experiment(request, experiment_id):
     experiment = models.Experiment.objects.get(id=experiment_id)
-    experiment.active = True
+    experiment.visible = True
     experiment.save()
     return HttpResponse(status=200)
 
@@ -445,7 +445,7 @@ def activate_experiment(request, experiment_id):
 @require_POST
 def deactivate_experiment(request, experiment_id):
     experiment = models.Experiment.objects.get(id=experiment_id)
-    experiment.active = False
+    experiment.visible = False
     experiment.save()
     return HttpResponse(status=200)
 
