@@ -83,8 +83,12 @@ class Experiment(models.Model):
     required_experiments = models.ManyToManyField(
         "self",
         related_name="requiring_experiments",
+        symmetrical=False,
     )
     visible = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["title", "id"]
 
     def __str__(self):
         return f'Experiment "{self.title}" ({self.task_type})'

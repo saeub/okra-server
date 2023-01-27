@@ -137,23 +137,29 @@
             const visible = visibleCheck.checked;
             if (visible) {
                 axios
-                    .post("{% url 'experiment-activate' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", experimentId), null, {
+                    .post("{% url 'experiment-visibility' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", experimentId),
+                    {"visible": true},
+                    {
                         headers: {
                             "X-CSRFToken": "{{ csrf_token }}",
                         },
                     })
                     .then((response) => {
-                        window.location.reload();
+                        window.location.reload(true);
                     });
             } else {
                 axios
-                    .post("{% url 'experiment-deactivate' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", experimentId), null, {
-                        headers: {
-                            "X-CSRFToken": "{{ csrf_token }}",
-                        },
-                    })
+                    .post(
+                        "{% url 'experiment-visibility' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", experimentId),
+                        {"visible": false},
+                        {
+                            headers: {
+                                "X-CSRFToken": "{{ csrf_token }}",
+                            },
+                        }
+                    )
                     .then((response) => {
-                        window.location.reload();
+                        window.location.reload(true);
                     });
             }
             visibleCheck.parentElement.querySelector("label").textContent = visible ? "Visible" : "Invisible";
