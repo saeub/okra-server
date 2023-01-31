@@ -482,6 +482,16 @@ def test_post_experiment_detail_missing_key(staff_authenticated_client, experime
             assert response.json() == {"message": f"Missing key: {key!r}"}
 
 
+def test_post_experiment_visibility(authenticated_client, experiments):
+    for experiment in experiments:
+        assert not experiment.visible
+        authenticated_client.post(
+            f"/experiments/{experiment.id}/visibility",
+            {"visible": True},
+            content_type="application/json",
+        )
+
+
 def test_post_delete_experiment(staff_authenticated_client, experiments):
     for experiment in experiments:
         staff_authenticated_client.post(f"/experiments/{experiment.id}/delete")
