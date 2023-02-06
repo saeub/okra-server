@@ -14,6 +14,7 @@ def experiment(registered_participant):
         title="Test experiment",
         instructions="Read the text and answer the questions.",
         practice_task=pt,
+        visible=True,
     )
     t1 = Task.objects.create(
         experiment=e,
@@ -185,3 +186,37 @@ def test_task_start_start(registered_participant, experiment):
 
     with pytest.raises(NoTasksAvailable):
         experiment.start_task(registered_participant)
+
+
+def test_experiment_is_available_visible(registered_participant, experiment):
+    assert experiment.is_available(registered_participant) is True
+
+    experiment.visible = False
+    experiment.save()
+    assert experiment.is_available(registered_participant) is False
+
+
+def test_experiment_is_available_requirements(registered_participant, experiment):
+    assert experiment.is_available(registered_participant) is True
+
+    required_experiment = Experiment.objects.create(visible=True)
+    experiment.required_experiments.add(required_experiment)
+    # Still available because required experiment has no assignments
+    assert experiment.is_available(registered_participant) is True
+    assert required_experiment.is_available(registered_participant) is True
+
+    TaskAssignment.objects.create(
+        participant=registered_participant,
+        task=Task.objects.create(
+            experiment=required_experiment,
+            data={},
+        ),
+    )
+    # No longer available because required experiments has unfinished assignments
+    assert experiment.is_available(registered_participant) is False
+    assert required_experiment.is_available(registered_participant) is True
+
+    required_experiment.start_task(registered_participant)
+    # Required experiment completed
+    assert experiment.is_available(registered_participant) is True
+    assert required_experiment.is_available(registered_participant) is True

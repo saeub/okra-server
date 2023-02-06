@@ -18,25 +18,59 @@
                             {% endif %}
                         </a>
                     </div>
-                    {% if user.is_staff %}
-                        <div class="col-auto">
+                    <div class="col-auto">
+                        {% if user.is_staff %}
                             <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#label-modal" data-bs-participant="{{ participant.id }}" data-bs-participant-label="{{ participant.label }}">
                                 Edit label
                             </button>
-                            {% if participant.device_key %}
-                                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#unregister-modal" data-bs-participant="{{ participant.id }}">
-                                    Unregister
-                                </button>
-                            {% endif %}
+                        {% endif %}
+                        {% if participant.device_key %}
+                            <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#unregister-modal" data-bs-participant="{{ participant.id }}">
+                                Unregister
+                            </button>
+                        {% endif %}
+                        {% if user.is_staff %}
                             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#delete-modal" data-bs-participant="{{ participant.id }}">
                                 Delete
                             </button>
-                        </div>
-                    {% endif %}
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         {% endfor %}
     </div>
+
+    <div class="modal fade" id="unregister-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Unregister participant</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        Do you really want to unregister participant <b class="modal-participant-id"></b>?
+                        The participant will receive a new registration key and will be able to re-register using a new QR code.
+                    </p>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            Yes, unregister
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var unregisterModal = document.getElementById("unregister-modal");
+        unregisterModal.addEventListener("show.bs.modal", function(event) {
+            var participant = event.relatedTarget.getAttribute("data-bs-participant");
+            unregisterModal.querySelector(".modal-body .modal-participant-id").textContent = participant;
+            unregisterModal.querySelector(".modal-body form").setAttribute("action", "{% url 'participant-unregister' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", participant));
+        });
+    </script>
+
     {% if user.is_staff %}
         <form action="{% url 'participant-new' %}" method="POST">
             {% csrf_token %}
@@ -59,28 +93,6 @@
                             <input type="text" class="form-control mb-2" name="label" placeholder="Label">
                             <button type="submit" class="btn btn-primary">
                                 Save
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="modal fade" id="unregister-modal">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Unregister participant</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>
-                            Do you really want to unregister participant <b class="modal-participant-id"></b>?
-                            The participant will receive a new registration key and will be able to re-register using a new QR code.
-                        </p>
-                        <form method="POST">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-danger">
-                                Yes, unregister
                             </button>
                         </form>
                     </div>
@@ -117,13 +129,6 @@
                 var label = event.relatedTarget.getAttribute("data-bs-participant-label");
                 labelModal.querySelector(".modal-body form input[name=label]").value = label;
                 labelModal.querySelector(".modal-body form").setAttribute("action", "{% url 'participant-label' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", participant));
-            });
-
-            var unregisterModal = document.getElementById("unregister-modal");
-            unregisterModal.addEventListener("show.bs.modal", function(event) {
-                var participant = event.relatedTarget.getAttribute("data-bs-participant");
-                unregisterModal.querySelector(".modal-body .modal-participant-id").textContent = participant;
-                unregisterModal.querySelector(".modal-body form").setAttribute("action", "{% url 'participant-unregister' '00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", participant));
             });
 
             var deleteModal = document.getElementById("delete-modal");

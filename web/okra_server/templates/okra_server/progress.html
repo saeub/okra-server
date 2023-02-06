@@ -11,12 +11,14 @@
                     <h5 class="card-title">{{ experiment.title }} ({{ experiment.id }})</h5>
                     <h6 class="card-subtitle">{{ experiment.task_type }}</h6>
                 </div>
-                <div class="col-auto">
-                    <a class="btn btn-primary" href="{% url 'experiment-results' experiment.id %}?download">
-                        <i class="bi bi-download me-2"></i>
-                        Download results
-                    </a>
-                </div>
+                {% if user.is_staff %}
+                    <div class="col-auto">
+                        <a class="btn btn-primary" href="{% url 'experiment-results' experiment.id %}?download">
+                            <i class="bi bi-download me-2"></i>
+                            Download results
+                        </a>
+                    </div>
+                {% endif %}
             </div>
         </div>
         <ul class="list-group list-group-flush">
@@ -27,12 +29,14 @@
                             <div class="col">
                                 <h6>{{ participant.label }} ({{ participant.id }})</h6>
                             </div>
-                            <div class="col-auto">
-                                <a class="btn btn-primary stretched-link" href="{% url 'experiment-results-graph' experiment.id participant.id %}">
-                                    <i class="bi bi-graph-up me-2"></i>
-                                    Results
-                                </a>
-                            </div>
+                            {% if user.is_staff %}
+                                <div class="col-auto">
+                                    <a class="btn btn-primary stretched-link" href="{% url 'experiment-results-graph' experiment.id participant.id %}">
+                                        <i class="bi bi-graph-up me-2"></i>
+                                        Results
+                                    </a>
+                                </div>
+                            {% endif %}
                         </div>
                         <div class="row">
                             <div class="col-auto text-center">

@@ -28,7 +28,7 @@ urlpatterns = [
     ),
     path(
         "experiments",
-        staff_required(views.ExperimentList.as_view()),
+        login_required(views.ExperimentList.as_view()),
         name="experiment-list",
     ),
     path(
@@ -52,6 +52,11 @@ urlpatterns = [
         name="experiment-results-graph",
     ),
     path(
+        "experiments/<uuid:experiment_id>/visibility",
+        login_required(views.experiment_visibility),
+        name="experiment-visibility",
+    ),
+    path(
         "experiments/<uuid:experiment_id>/delete",
         staff_required(views.delete_experiment),
         name="experiment-delete",
@@ -73,7 +78,7 @@ urlpatterns = [
     ),
     path(
         "participants/<uuid:participant_id>/unregister",
-        staff_required(views.unregister_participant),
+        login_required(views.unregister_participant),
         name="participant-unregister",
     ),
     path(
