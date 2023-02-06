@@ -24,10 +24,13 @@
                     <ul class="navbar-nav me-auto mb-2 mb-md-0">
                         {% if user.is_authenticated %}
                             <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'participant-list' %}visible{% endif %}" href="{% url 'participant-list' %}">Participants</a>
+                                <a class="nav-link {% if request.resolver_match.url_name == 'index' or request.resolver_match.url_name == 'progress' %}active{% endif %}" href="{% url 'index' %}">Progress</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'experiment-list' %}visible{% endif %}" href="{% url 'experiment-list' %}">Experiments</a>
+                                <a class="nav-link {% if request.resolver_match.url_name == 'participant-list' %}active{% endif %}" href="{% url 'participant-list' %}">Participants</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.resolver_match.url_name == 'experiment-list' %}active{% endif %}" href="{% url 'experiment-list' %}">Experiments</a>
                             </li>
                         {% endif %}
                     </ul>
