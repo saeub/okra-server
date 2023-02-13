@@ -22,41 +22,14 @@ def api_info(request):
 
 
 def index(request):
-    participants = models.Participant.objects.all()
-    experiments_data = []
-    for experiment in models.Experiment.objects.all():
-        n_tasks = 0
-        n_tasks_unfinished = 0
-        n_tasks_finished = 0
-        n_tasks_canceled = 0
-        for participant in participants:
-            n_tasks += experiment.get_n_tasks(participant)
-            n_tasks_unfinished += experiment.get_n_tasks(
-                participant, started=True, finished=False, canceled=False
-            )
-            n_tasks_finished += experiment.get_n_tasks(
-                participant, started=True, finished=True, canceled=False
-            )
-            n_tasks_canceled += experiment.get_n_tasks(
-                participant, started=True, finished=True, canceled=True
-            )
-        experiments_data.append(
-            {
-                "id": str(experiment.id),
-                "title": experiment.title,
-                "task_type": dict(models.TaskType.choices)[experiment.task_type],
-                "n_practice_tasks_finished": experiment.get_n_tasks(
-                    participant, practice=True, finished=True, canceled=False
-                ),
-                "n_tasks": n_tasks,
-                "n_tasks_unfinished": n_tasks_unfinished,
-                "percent_tasks_unfinished": n_tasks_unfinished / (n_tasks or 1) * 100,
-                "n_tasks_finished": n_tasks_finished,
-                "percent_tasks_finished": n_tasks_finished / (n_tasks or 1) * 100,
-                "n_tasks_canceled": n_tasks_canceled,
-                "percent_tasks_canceled": n_tasks_canceled / (n_tasks or 1) * 100,
-            }
-        )
+    experiments_data = [
+        {
+            "id": str(experiment.id),
+            "title": experiment.title,
+            "task_type": dict(models.TaskType.choices)[experiment.task_type],
+        }
+        for experiment in models.Experiment.objects.all()
+    ]
     return render(
         request,
         "okra_server/index.html",
