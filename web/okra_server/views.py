@@ -322,36 +322,45 @@ class ExperimentDetail(View):
 def experiment_results(request, experiment_id):
     download = "download" in request.GET
     experiment = models.Experiment.objects.get(id=experiment_id)
-    results = {
+    data = {
+        "experiment": {
+            "id": experiment.id,
+            "title": experiment.title,
+            "task_type": experiment.task_type,
+        },
         "results": [
             {
                 "participant": participant.id,
                 "practiceTasks": [
                     {
-                        "task": assignment.task.id,
+                        "id": assignment.task.id,
+                        "label": assignment.task.label,
                         "results": assignment.results,
                         "started_time": assignment.started_time,
                         "finished_time": assignment.finished_time,
                     }
                     for assignment in experiment.get_assignments(
                         participant, practice=True
-                    )
+                    ).filter(results__isnull=False)
                 ],
                 "tasks": [
                     {
-                        "task": assignment.task.id,
+                        "id": assignment.task.id,
+                        "label": assignment.task.label,
                         "results": assignment.results,
                         "started_time": assignment.started_time,
                         "finished_time": assignment.finished_time,
                     }
-                    for assignment in experiment.get_assignments(participant)
+                    for assignment in experiment.get_assignments(participant).filter(
+                        results__isnull=False
+                    )
                 ],
             }
             for participant in models.Participant.objects.all()
         ],
     }
     response = JsonResponse(
-        results,
+        data,
         status=200,
     )
     if download:
