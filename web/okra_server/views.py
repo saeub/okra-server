@@ -326,34 +326,35 @@ def experiment_results(request, experiment_id):
         "experiment": {
             "id": experiment.id,
             "title": experiment.title,
-            "task_type": experiment.task_type,
+            "taskType": experiment.task_type,
         },
         "results": [
             {
-                "participant": participant.id,
+                "participant": {
+                    "id": participant.id,
+                    "label": participant.label,
+                },
                 "practiceTasks": [
                     {
                         "id": assignment.task.id,
                         "label": assignment.task.label,
                         "results": assignment.results,
-                        "started_time": assignment.started_time,
-                        "finished_time": assignment.finished_time,
+                        "startedTime": assignment.started_time,
+                        "finishedTime": assignment.finished_time,
                     }
                     for assignment in experiment.get_assignments(
                         participant, practice=True
-                    ).filter(results__isnull=False)
+                    )
                 ],
                 "tasks": [
                     {
                         "id": assignment.task.id,
                         "label": assignment.task.label,
                         "results": assignment.results,
-                        "started_time": assignment.started_time,
-                        "finished_time": assignment.finished_time,
+                        "startedTime": assignment.started_time,
+                        "finishedTime": assignment.finished_time,
                     }
-                    for assignment in experiment.get_assignments(participant).filter(
-                        results__isnull=False
-                    )
+                    for assignment in experiment.get_assignments(participant)
                 ],
             }
             for participant in models.Participant.objects.all()
