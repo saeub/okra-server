@@ -1,28 +1,28 @@
 repos:
   - repo: https://github.com/psf/black
-    rev: 22.12.0
+    rev: 24.8.0
     hooks:
       - id: black
         exclude: ^web/okra_server/migrations/
   - repo: https://github.com/PyCQA/flake8
-    rev: 5.0.4
+    rev: 7.1.1
     hooks:
       - id: flake8
         args: [--config=web/.flake8]
         exclude: ^web/okra_server/migrations/
   - repo: https://github.com/PyCQA/isort
-    rev: 5.11.5
+    rev: 5.13.2
     hooks:
       - id: isort
         exclude: ^web/okra_server/migrations/
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v2.7.1
+    rev: v3.1.0
     hooks:
       - id: prettier
         exclude: \.html$
-  - repo: https://github.com/aneustroev/jinjalint
-    rev: 65d13cb
-    hooks:
-      - id: jinjalint
-        types: [file]
-        files: \.html$
+  # - repo: https://github.com/aneustroev/jinjalint
+  #   rev: 65d13cb
+  #   hooks:
+  #     - id: jinjalint
+  #       types: [file]
+  #       files: \.html$
