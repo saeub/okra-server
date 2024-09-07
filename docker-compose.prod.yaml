@@ -16,6 +16,8 @@ services:
       - OKRA_URL
       - DJANGO_SECRET_KEY
       - FORCE_SCRIPT_NAME
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB_NAME
       - POSTGRES_USER
       - POSTGRES_PASSWORD
   postgres:
