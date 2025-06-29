@@ -121,6 +121,7 @@ def _serialize_rating(rating: models.TaskRating) -> dict:
         "type": rating.rating_type,
         "lowExtreme": rating.low_extreme,
         "highExtreme": rating.high_extreme,
+        "options": rating.options,
     }
 
 

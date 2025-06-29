@@ -272,9 +272,7 @@ class ExperimentDetail(View):
                 rating.low_extreme = rating_data.get("lowExtreme")
                 rating.high_extreme = rating_data.get("highExtreme")
                 rating.options = rating_data.get("options")
-                print(rating)
                 rating.save()
-                print("saved")
 
             return JsonResponse(
                 {
