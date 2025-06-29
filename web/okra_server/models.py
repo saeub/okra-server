@@ -260,4 +260,4 @@ class TaskRating(models.Model):
     )
     low_extreme = models.TextField(null=True)
     high_extreme = models.TextField(null=True)
-    options = models.JSONField()
+    options = models.JSONField(null=True)
