@@ -116,12 +116,17 @@ def _serialize_task(task: models.Task, *, is_final: bool) -> dict:
 
 
 def _serialize_rating(rating: models.TaskRating) -> dict:
+    if rating.options is not None:
+        return {
+            "question": rating.question,
+            "type": rating.rating_type,
+            "options": rating.options,
+        }
     return {
         "question": rating.question,
         "type": rating.rating_type,
         "lowExtreme": rating.low_extreme,
         "highExtreme": rating.high_extreme,
-        "options": rating.options,
     }
 
 
