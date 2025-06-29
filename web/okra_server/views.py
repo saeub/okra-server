@@ -269,8 +269,9 @@ class ExperimentDetail(View):
                 rating.experiment = experiment
                 rating.question = rating_data["question"]
                 rating.rating_type = rating_data["type"]
-                rating.low_extreme = rating_data["lowExtreme"]
-                rating.high_extreme = rating_data["highExtreme"]
+                rating.low_extreme = rating_data.get("lowExtreme")
+                rating.high_extreme = rating_data.get("highExtreme")
+                rating.options = rating_data.get("options")
                 rating.save()
 
             return JsonResponse(

@@ -4,6 +4,7 @@ import uuid
 from functools import partial
 from typing import Optional
 
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
 
@@ -260,3 +261,4 @@ class TaskRating(models.Model):
     )
     low_extreme = models.TextField(null=True)
     high_extreme = models.TextField(null=True)
+    options = ArrayField(models.TextField(blank=True), null=True)
